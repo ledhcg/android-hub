@@ -21,7 +21,7 @@ enum CanvasZoom: Equatable {
     case physical
 }
 
-/// The Device Hub "canvas": the live screen inside a bezel, with side buttons, navigation row and capture tools.
+/// The canvas: the live screen inside a bezel, with side buttons, navigation row and capture tools.
 struct DeviceCanvasView: View {
     let device: Device
     @ObservedObject var controller: MirrorController
@@ -51,12 +51,12 @@ struct DeviceCanvasView: View {
         switch device.state {
         case .unauthorized:
             StatusMessage(
-                symbol: "lock.shield", title: "Chưa cấp quyền USB debugging",
-                message: "Mở khoá điện thoại và bấm Allow ở hộp thoại \"Allow USB debugging?\". Nếu không thấy, vào Tuỳ chọn nhà phát triển → Thu hồi quyền gỡ lỗi USB rồi cắm lại cáp.")
+                symbol: "lock.shield", title: "USB Debugging Not Authorized",
+                message: "Unlock the phone and tap Allow in the \"Allow USB debugging?\" dialog. If you don't see it, go to Developer options → Revoke USB debugging authorizations, then reconnect the cable.")
         case .offline:
-            StatusMessage(symbol: "bolt.slash", title: "Thiết bị đang offline", message: "Thử rút cáp cắm lại, hoặc chạy `adb reconnect`.")
+            StatusMessage(symbol: "bolt.slash", title: "Device Is Offline", message: "Try unplugging and reconnecting the cable, or run `adb reconnect`.")
         case .noPermissions:
-            StatusMessage(symbol: "hand.raised", title: "Không có quyền truy cập thiết bị", message: "Kiểm tra cáp/cổng USB và quyền của hệ thống.")
+            StatusMessage(symbol: "hand.raised", title: "No Permission to Access Device", message: "Check the USB cable/port and system permissions.")
         case .device:
             switch controller.state {
             case .idle: idle
@@ -65,7 +65,7 @@ struct DeviceCanvasView: View {
             case .running: screen
             }
         default:
-            StatusMessage(symbol: "questionmark.circle", title: "Trạng thái: \(device.state.rawValue)", message: "Thiết bị chưa sẵn sàng.")
+            StatusMessage(symbol: "questionmark.circle", title: "State: \(device.state.rawValue)", message: "The device isn't ready.")
         }
     }
 
@@ -73,11 +73,11 @@ struct DeviceCanvasView: View {
         VStack(spacing: 16) {
             Image(systemName: "iphone.gen3").font(.system(size: 56)).foregroundStyle(.secondary)
             Text(deviceName).font(.title2.weight(.semibold))
-            Text("Mở khoá thiết bị rồi bấm View Screen để xem và điều khiển.").foregroundStyle(.secondary)
+            Text("Unlock the device, then click View Screen to view and control it.").foregroundStyle(.secondary)
             Button("View Screen") { controller.start() }
                 .buttonStyle(.borderedProminent).controlSize(.large).keyboardShortcut(.defaultAction)
             if device.usbVendorName?.lowercased().contains("xiaomi") == true {
-                Text("Máy Xiaomi: bật thêm “USB debugging (Security settings)” trong Tuỳ chọn nhà phát triển để điều khiển bằng chuột/bàn phím.")
+                Text("Xiaomi devices: also enable “USB debugging (Security settings)” in Developer options to control the device with the mouse and keyboard.")
                     .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 360)
             }
         }
@@ -87,9 +87,9 @@ struct DeviceCanvasView: View {
     private var starting: some View {
         VStack(spacing: 14) {
             ProgressView()
-            Text("Đang khởi động scrcpy-server trên thiết bị…")
-            Text("Lần đầu trên một số máy có thể mất vài chục giây.").font(.caption).foregroundStyle(.secondary)
-            Button("Huỷ") { controller.stop() }
+            Text("Starting scrcpy-server on the device…")
+            Text("The first start on some devices can take a few dozen seconds.").font(.caption).foregroundStyle(.secondary)
+            Button("Cancel") { controller.stop() }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -97,10 +97,10 @@ struct DeviceCanvasView: View {
     private func failed(_ message: String) -> some View {
         VStack(spacing: 14) {
             Image(systemName: "exclamationmark.triangle").font(.system(size: 40)).foregroundStyle(.orange)
-            Text("Không xem được màn hình").font(.title3.weight(.semibold))
+            Text("Can't View Screen").font(.title3.weight(.semibold))
             ScrollView { Text(message).font(.callout.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
                 .frame(maxWidth: 520, maxHeight: 160).padding(8).background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-            Button("Thử lại") { controller.start() }.buttonStyle(.borderedProminent)
+            Button("Try Again") { controller.start() }.buttonStyle(.borderedProminent)
         }
         .padding().frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -142,9 +142,9 @@ struct DeviceCanvasView: View {
     private func sideButtons(size: CGSize) -> some View {
         let height = size.height
         return ZStack(alignment: .topTrailing) {
-            sideButton(.volumeUp, "Tăng âm lượng", y: height * 0.17)
-            sideButton(.volumeDown, "Giảm âm lượng", y: height * 0.25)
-            sideButton(.power, "Nguồn / Khoá màn hình", y: height * 0.36, length: height * 0.09)
+            sideButton(.volumeUp, "Volume Up", y: height * 0.17)
+            sideButton(.volumeDown, "Volume Down", y: height * 0.25)
+            sideButton(.power, "Power / Lock Screen", y: height * 0.36, length: height * 0.09)
         }
         .frame(width: size.width, height: size.height, alignment: .topTrailing)
     }
@@ -191,34 +191,34 @@ struct DeviceCanvasView: View {
 
     private var toolbar: some View {
         HStack(spacing: 4) {
-            tool("chevron.backward", "Back (chuột phải)") { controller.press(.back) }
-            tool("circle", "Home (chuột giữa)") { controller.press(.home) }
+            tool("chevron.backward", "Back (right-click)") { controller.press(.back) }
+            tool("circle", "Home (middle-click)") { controller.press(.home) }
             tool("square.on.square", "Recents") { controller.press(.recents) }
             Divider().frame(height: 18)
-            tool("camera", "Chụp màn hình (⌘S)") { controller.screenshot(deviceName: deviceName) }
+            tool("camera", "Take Screenshot (⌘S)") { controller.screenshot(deviceName: deviceName) }
             if controller.isRecording {
-                tool("stop.circle.fill", "Dừng quay", tint: .red) { controller.stopRecording() }
+                tool("stop.circle.fill", "Stop Recording", tint: .red) { controller.stopRecording() }
             } else {
-                tool("record.circle", "Quay màn hình (⇧⌘R)") { controller.startRecording(deviceName: deviceName) }
+                tool("record.circle", "Record Screen (⇧⌘R)") { controller.startRecording(deviceName: deviceName) }
             }
-            tool("rotate.left", "Xoay thiết bị") { controller.rotateDevice() }
-            tool("bell", "Thông báo") { controller.press(.notifications) }
-            tool("switch.2", "Cài đặt nhanh") { controller.press(.quickSettings) }
+            tool("rotate.left", "Rotate Device") { controller.rotateDevice() }
+            tool("bell", "Notifications") { controller.press(.notifications) }
+            tool("switch.2", "Quick Settings") { controller.press(.quickSettings) }
             if !isCompact {
                 Divider().frame(height: 18)
-                tool("minus.magnifyingglass", "Thu nhỏ") { stepZoom(-1) }
-                tool("plus.magnifyingglass", "Phóng to") { stepZoom(1) }
-                tool("arrow.up.left.and.down.right.magnifyingglass", "Vừa khung") { zoom = .fit }
-                tool("ruler", "Kích thước thật (≈)") { zoom = .physical }
-                tool("rectangle.dashed", "Chế độ đổi kích thước") { showResize.toggle() }
+                tool("minus.magnifyingglass", "Zoom Out") { stepZoom(-1) }
+                tool("plus.magnifyingglass", "Zoom In") { stepZoom(1) }
+                tool("arrow.up.left.and.down.right.magnifyingglass", "Fit to Window") { zoom = .fit }
+                tool("ruler", "Actual Size (≈)") { zoom = .physical }
+                tool("rectangle.dashed", "Resize Mode") { showResize.toggle() }
                     .popover(isPresented: $showResize) { ResizeModeView(device: device).environmentObject(store) }
-                tool(showBezels ? "iphone.gen3" : "iphone.gen3.slash", showBezels ? "Ẩn viền" : "Hiện viền") { showBezels.toggle() }
+                tool(showBezels ? "iphone.gen3" : "iphone.gen3.slash", showBezels ? "Hide Bezels" : "Show Bezels") { showBezels.toggle() }
             }
             Spacer()
             if let size = controller.frameSize {
                 Text("\(size.width)×\(size.height)").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
             }
-            tool("stop.fill", "Dừng xem màn hình") { controller.stop() }
+            tool("stop.fill", "Stop Viewing Screen") { controller.stop() }
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
         .background(.bar)
@@ -262,7 +262,7 @@ struct StatusMessage: View {
     }
 }
 
-/// Device Hub's "resize mode": try arbitrary screen sizes without owning every device (`wm size`).
+/// Resize mode: try arbitrary screen sizes without owning every device (`wm size`).
 struct ResizeModeView: View {
     let device: Device
     @EnvironmentObject var store: DeviceStore
@@ -271,18 +271,18 @@ struct ResizeModeView: View {
     @State private var error: String?
 
     private let presets: [(String, Int, Int)] = [
-        ("Nhỏ 720×1280", 720, 1280), ("1080×1920", 1080, 1920), ("1080×2400", 1080, 2400), ("1440×3200", 1440, 3200),
-        ("Máy tính bảng 1600×2560", 1600, 2560), ("Gập 1768×2208", 1768, 2208),
+        ("Small 720×1280", 720, 1280), ("1080×1920", 1080, 1920), ("1080×2400", 1080, 2400), ("1440×3200", 1440, 3200),
+        ("Tablet 1600×2560", 1600, 2560), ("Foldable 1768×2208", 1768, 2208),
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Đổi kích thước màn hình").font(.headline)
+            Text("Resize Screen").font(.headline)
             HStack {
-                TextField("Rộng", text: $width).frame(width: 70)
+                TextField("Width", text: $width).frame(width: 70)
                 Text("×")
-                TextField("Cao", text: $height).frame(width: 70)
-                Button("Áp dụng") { apply(.displaySize(width: Int(width) ?? 0, height: Int(height) ?? 0)) }
+                TextField("Height", text: $height).frame(width: 70)
+                Button("Apply") { apply(.displaySize(width: Int(width) ?? 0, height: Int(height) ?? 0)) }
                     .disabled(Int(width) == nil || Int(height) == nil)
             }
             ForEach(presets, id: \.0) { preset in
@@ -290,7 +290,7 @@ struct ResizeModeView: View {
                     .buttonStyle(.link)
             }
             Divider()
-            Button("Khôi phục kích thước gốc") { apply(.resetDisplaySize); apply(.resetDisplayDensity) }
+            Button("Restore Original Size") { apply(.resetDisplaySize); apply(.resetDisplayDensity) }
             if let error { Text(error).font(.caption).foregroundStyle(.red) }
         }
         .padding().frame(width: 280)

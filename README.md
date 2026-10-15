@@ -158,7 +158,7 @@ that sits next to it in `build/` (the CLI locates the pinned scrcpy-server throu
   (~40 ms), NFC-normalised, put on the device clipboard and pasted — so the *phone's* clipboard is overwritten.
 - **Recording keeps real duration.** Every frame carries an explicit duration, so a static screen does not shorten the file.
 
-More detail and current status: [docs/STATUS.md](docs/STATUS.md).
+More detail and current status: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [ROADMAP.md](ROADMAP.md).
 
 ## Privacy & security
 
@@ -179,6 +179,11 @@ More detail and current status: [docs/STATUS.md](docs/STATUS.md).
 - Cancelling a running `bugreport` closes the connection but may not stop `dumpstate` on the device.
 - Pushing files *into* an app's data container (run-as) is not supported; browse and pull only.
 - Decomposed Vietnamese diacritics from synthetic typing tools can drop the last mark; real Telex/VNI input sends composed text.
+
+## Contributing
+
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
+Changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

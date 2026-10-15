@@ -2,12 +2,12 @@ import AdbKit
 import SwiftUI
 
 enum InspectorTab: String, CaseIterable, Identifiable {
-    case settings = "Cài đặt"
-    case info = "Thông tin"
-    case apps = "Ứng dụng"
-    case files = "Tệp"
-    case logs = "Nhật ký"
-    case diagnostics = "Chẩn đoán"
+    case settings = "Settings"
+    case info = "Info"
+    case apps = "Apps"
+    case files = "Files"
+    case logs = "Logs"
+    case diagnostics = "Diagnostics"
     var id: String { rawValue }
 
     var symbol: String {
@@ -22,7 +22,7 @@ enum InspectorTab: String, CaseIterable, Identifiable {
     }
 }
 
-/// Device Hub's inspector: one icon bar, one panel at a time, always for the selected device.
+/// The inspector: one icon bar, one panel at a time, always for the selected device.
 struct InspectorView: View {
     let device: Device
     @EnvironmentObject var store: DeviceStore
@@ -46,7 +46,7 @@ struct InspectorView: View {
             if device.isReady {
                 panel.id("\(device.serial)-\(tab.rawValue)")
             } else {
-                StatusMessage(symbol: "iphone.slash", title: "Thiết bị chưa sẵn sàng", message: "Inspector hoạt động khi thiết bị ở trạng thái “device”.")
+                StatusMessage(symbol: "iphone.slash", title: "Device Not Ready", message: "The inspector works when the device is in the “device” state.")
             }
         }
     }
@@ -90,45 +90,45 @@ struct InfoPanel: View {
             VStack(alignment: .leading, spacing: 12) {
                 ErrorBanner(message: model.error)
                 if let info = model.info {
-                    group("Thiết bị") {
-                        row("Tên", device.displayName)
-                        row("Nhà sản xuất", info.manufacturer)
+                    group("Device") {
+                        row("Name", device.displayName)
+                        row("Manufacturer", info.manufacturer)
                         row("Model", info.model)
-                        row("Tên thương mại", info.marketName)
+                        row("Marketing Name", info.marketName)
                         row("Codename", info.codename)
-                        row("Loại", info.isEmulator ? "Emulator" : "Máy thật")
+                        row("Type", info.isEmulator ? "Emulator" : "Physical Device")
                     }
-                    group("Hệ điều hành") {
+                    group("Operating System") {
                         row("Android", info.androidVersion.map { "\($0) (SDK \(info.sdkInt.map(String.init) ?? "?"))" })
-                        row("Bản vá bảo mật", info.securityPatch)
-                        row("Bản build", info.buildId)
+                        row("Security Patch", info.securityPatch)
+                        row("Build", info.buildId)
                         row("ABI", info.primaryABI)
                     }
-                    group("Định danh") {
+                    group("Identifiers") {
                         row("Serial / ID", info.serial, copyable: true)
-                        row("Kết nối", device.connection.rawValue.uppercased())
+                        row("Connection", device.connection.rawValue.uppercased())
                         row("Transport ID", device.transportId.map(String.init))
-                        row("Đường USB", device.usbPath)
+                        row("USB Path", device.usbPath)
                     }
-                    group("Màn hình") {
-                        row("Kích thước", size(info.physicalSize))
-                        row("Kích thước (override)", size(info.overrideSize))
+                    group("Display") {
+                        row("Size", size(info.physicalSize))
+                        row("Size (override)", size(info.overrideSize))
                         row("Density", info.physicalDensity.map { "\($0) dpi" })
                         row("Density (override)", info.overrideDensity.map { "\($0) dpi" })
                     }
                     if let battery = info.battery {
                         group("Pin") {
-                            row("Mức pin", battery.level.map { "\($0)%" })
-                            row("Đang sạc", battery.isCharging.map { $0 ? "Có" : "Không" })
-                            row("Nguồn", battery.poweredBy.isEmpty ? nil : battery.poweredBy.joined(separator: ", "))
-                            row("Nhiệt độ", battery.temperatureCelsius.map { String(format: "%.1f °C", $0) })
+                            row("Battery Level", battery.level.map { "\($0)%" })
+                            row("Charging", battery.isCharging.map { $0 ? "Yes" : "No" })
+                            row("Power Source", battery.poweredBy.isEmpty ? nil : battery.poweredBy.joined(separator: ", "))
+                            row("Temperature", battery.temperatureCelsius.map { String(format: "%.1f °C", $0) })
                         }
                     }
                 } else if model.isLoading {
                     ProgressView().frame(maxWidth: .infinity).padding()
                 }
-                DisclosureGroup("Tất cả thuộc tính hệ thống (getprop)", isExpanded: $model.showsProperties) {
-                    TextField("Lọc", text: $propertyFilter).textFieldStyle(.roundedBorder)
+                DisclosureGroup("All System Properties (getprop)", isExpanded: $model.showsProperties) {
+                    TextField("Filter", text: $propertyFilter).textFieldStyle(.roundedBorder)
                     let keys = model.properties.keys.sorted().filter { propertyFilter.isEmpty || $0.localizedCaseInsensitiveContains(propertyFilter) || (model.properties[$0] ?? "").localizedCaseInsensitiveContains(propertyFilter) }
                     ForEach(keys, id: \.self) { key in
                         HStack(alignment: .top) {
@@ -163,7 +163,7 @@ struct InfoPanel: View {
                 Text(value).multilineTextAlignment(.trailing).textSelection(.enabled)
                 if copyable {
                     Button { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(value, forType: .string) } label: { Image(systemName: "doc.on.doc") }
-                        .buttonStyle(.borderless).help("Chép")
+                        .buttonStyle(.borderless).help("Copy")
                 }
             }
             .font(.callout)

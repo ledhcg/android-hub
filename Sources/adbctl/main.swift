@@ -1,7 +1,7 @@
 import AdbKit
 import Foundation
 
-// adbctl — a `devicectl`-style command line for Android devices.
+// adbctl — a command line for managing Android devices.
 // Scripts should read `--json-output` (versioned), never the human-readable text.
 
 registerDeviceCommands()
@@ -55,6 +55,6 @@ func runCLI() async throws {
 do {
     try await runCLI()
 } catch {
-    FileHandle.standardError.write(Data("Lỗi: \(error)\n".utf8))
+    FileHandle.standardError.write(Data("Error: \(error)\n".utf8))
     exit(1)
 }

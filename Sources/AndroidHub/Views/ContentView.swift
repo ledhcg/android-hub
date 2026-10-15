@@ -23,16 +23,16 @@ struct ContentView: View {
         .toolbar {
             ToolbarItemGroup {
                 Menu {
-                    Button("Ghép đôi thiết bị qua Wi-Fi…") { showPair = true }
-                    Button("Emulator mới…") { showNewEmulator = true }
+                    Button("Pair Device over Wi-Fi…") { showPair = true }
+                    Button("New Emulator…") { showNewEmulator = true }
                 } label: { Image(systemName: "plus") }
-                .help("Thêm thiết bị")
+                .help("Add Device")
                 if let device = store.selectedDevice, device.isReady {
                     Button { openWindow(value: device.serial) } label: { Image(systemName: "rectangle.on.rectangle") }
-                        .help("Mở cửa sổ nhỏ gọn")
+                        .help("Open Compact Window")
                 }
                 Button { showInspector.toggle() } label: { Image(systemName: "sidebar.trailing") }
-                    .help("Hiện/ẩn Inspector").disabled(store.selectedDevice == nil)
+                    .help("Show/Hide Inspector").disabled(store.selectedDevice == nil)
             }
         }
         .sheet(isPresented: $showPair) { PairDeviceSheet().environmentObject(store) }
@@ -54,12 +54,12 @@ struct ContentView: View {
         } else if let avd = store.selectedAVD {
             AVDDetailView(avd: avd)
         } else {
-            ContentUnavailableView("Chọn một thiết bị", systemImage: "iphone.gen3", description: Text("Chọn thiết bị ở thanh bên để xem màn hình và quản lý."))
+            ContentUnavailableView("Select a Device", systemImage: "iphone.gen3", description: Text("Select a device in the sidebar to view its screen and manage it."))
         }
     }
 }
 
-/// The small standalone window Device Hub opens for a running device.
+/// The small standalone window opened for a running device.
 struct CompactDeviceWindow: View {
     let serial: String
     @EnvironmentObject var store: DeviceStore
@@ -71,7 +71,7 @@ struct CompactDeviceWindow: View {
                 .focusedSceneValue(\.activeSerial, serial)
                 .task { if device.isReady, !store.controller(for: serial).isRunning { store.controller(for: serial).start() } }
         } else {
-            StatusMessage(symbol: "bolt.slash", title: "Thiết bị đã ngắt kết nối", message: serial)
+            StatusMessage(symbol: "bolt.slash", title: "Device Disconnected", message: serial)
         }
     }
 }

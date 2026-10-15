@@ -21,31 +21,31 @@ extension AdbError: CustomStringConvertible {
     public var description: String {
         switch self {
         case .adbNotFound:
-            return "Không tìm thấy `adb`. Đặt ANDROID_HOME hoặc thêm platform-tools vào PATH."
+            return "`adb` not found. Set ANDROID_HOME or add platform-tools to PATH."
         case .serverUnreachable(let detail):
-            return "Không kết nối được adb server: \(detail)"
+            return "Could not connect to the adb server: \(detail)"
         case .unexpectedEOF:
-            return "adb server đóng kết nối đột ngột."
+            return "The adb server closed the connection unexpectedly."
         case .io(let detail):
-            return "Lỗi I/O: \(detail)"
+            return "I/O error: \(detail)"
         case .protocolViolation(let detail):
-            return "Phản hồi adb không hợp lệ: \(detail)"
+            return "Invalid adb response: \(detail)"
         case .adbFailure(let message):
-            return "adb từ chối yêu cầu: \(message)"
+            return "adb rejected the request: \(message)"
         case .deviceNotFound(let id):
-            return "Không thấy thiết bị '\(id)'."
+            return "Device not found: '\(id)'."
         case .deviceUnauthorized(let serial):
             return """
-                Thiết bị \(serial) chưa cấp quyền USB debugging cho máy này.
-                Mở khoá điện thoại, bấm Allow ở hộp thoại "Allow USB debugging?" \
-                (hoặc thu hồi quyền gỡ lỗi USB trong Tuỳ chọn nhà phát triển rồi cắm lại cáp).
+                Device \(serial) has not authorized USB debugging for this computer.
+                Unlock the phone and tap Allow in the "Allow USB debugging?" dialog \
+                (or revoke USB debugging authorizations in Developer options and replug the cable).
                 """
         case .deviceOffline(let serial):
-            return "Thiết bị \(serial) đang offline. Thử rút cáp cắm lại hoặc `adb reconnect`."
+            return "Device \(serial) is offline. Try replugging the cable or running `adb reconnect`."
         case .noDeviceSpecified(let candidates):
-            return "Cần chỉ định --device. Thiết bị hiện có: \(candidates.isEmpty ? "(không có)" : candidates.joined(separator: ", "))"
+            return "Specify --device. Available devices: \(candidates.isEmpty ? "(none)" : candidates.joined(separator: ", "))"
         case .ambiguousDevice(let query, let candidates):
-            return "'\(query)' khớp nhiều thiết bị: \(candidates.joined(separator: ", "))"
+            return "'\(query)' matches multiple devices: \(candidates.joined(separator: ", "))"
         }
     }
 }

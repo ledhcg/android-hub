@@ -14,14 +14,14 @@ let package = Package(
     targets: [
         // Talks to the adb server directly over its socket protocol (no `adb` subprocess per call).
         .target(name: "AdbKit"),
-        // Command-line companion, modelled on Apple's `devicectl`.
+        // Command-line companion with scriptable, versioned JSON output.
         .executableTarget(name: "adbctl", dependencies: ["AdbKit", "EmulatorKit", "ScrcpyKit"]),
-        // The macOS app: sidebar / canvas / inspector, modelled on Xcode 27's Device Hub.
+        // The macOS app: sidebar / canvas / inspector.
         // Swift 5 language mode: AppKit/AVFoundation interop (video thread → layer) is not yet Sendable-clean.
         .executableTarget(
             name: "AndroidHub", dependencies: ["AdbKit", "EmulatorKit", "ScrcpyKit"],
             swiftSettings: [.swiftLanguageMode(.v5)]),
-        // Android Virtual Device management (the counterpart of Device Hub's simulator management).
+        // Android Virtual Device (emulator) management.
         .target(name: "EmulatorKit", dependencies: ["AdbKit"]),
         // Screen mirroring + input injection: a native client for the (pinned) scrcpy-server protocol.
         .target(

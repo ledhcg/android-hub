@@ -108,7 +108,7 @@ extension AdbClient {
             }
         }
         guard exitCode == 0 else {
-            throw AdbError.adbFailure("`\(command)` thoát với mã \(exitCode): \(String(decoding: stderr, as: UTF8.self))")
+            throw AdbError.adbFailure("`\(command)` exited with code \(exitCode): \(String(decoding: stderr, as: UTF8.self))")
         }
     }
 
@@ -134,7 +134,7 @@ extension AdbClient {
             }
         }
         guard exitCode == 0 else {
-            throw AdbError.adbFailure("`\(command)` thoát với mã \(exitCode): \(String(decoding: stderr, as: UTF8.self))")
+            throw AdbError.adbFailure("`\(command)` exited with code \(exitCode): \(String(decoding: stderr, as: UTF8.self))")
         }
         return stdout
     }
@@ -146,7 +146,7 @@ extension AdbClient {
         guard result.exitCode == 0 else {
             let detail = [result.stderr, result.stdout].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .first { !$0.isEmpty } ?? ""
-            throw AdbError.adbFailure("`\(command)` thoát với mã \(result.exitCode): \(detail)")
+            throw AdbError.adbFailure("`\(command)` exited with code \(result.exitCode): \(detail)")
         }
         return result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
     }

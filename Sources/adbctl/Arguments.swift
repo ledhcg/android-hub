@@ -61,11 +61,11 @@ enum CLIError: Error, CustomStringConvertible {
 
     var description: String {
         switch self {
-        case .missingValue(let name): "Thiếu giá trị cho \(name)."
-        case .invalidValue(let name, let value): "Giá trị không hợp lệ cho \(name): '\(value)'"
-        case .missingArgument(let what): "Thiếu tham số: \(what)"
-        case .fileExists(let path): "'\(path)' đã tồn tại (dùng --force để ghi đè)."
-        case .unknownCommand(let words): "Lệnh không hợp lệ: \(words.joined(separator: " ")). Chạy `adbctl help` để xem danh sách."
+        case .missingValue(let name): "Missing value for \(name)"
+        case .invalidValue(let name, let value): "Invalid value for \(name): '\(value)'"
+        case .missingArgument(let what): "Missing argument: \(what)"
+        case .fileExists(let path): "'\(path)' already exists (use --force to overwrite)"
+        case .unknownCommand(let words): "Unknown command: \(words.joined(separator: " ")). Run `adbctl help` to see the list of commands."
         }
     }
 }

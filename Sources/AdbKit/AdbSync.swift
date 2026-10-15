@@ -77,7 +77,7 @@ public final class AdbSyncSession: @unchecked Sendable {
         try sendPathRequest("STAT", path)
         let response = try socket.readExactly(16)
         guard String(decoding: response[0..<4], as: UTF8.self) == "STAT" else {
-            throw AdbError.protocolViolation("STAT trả về '\(String(decoding: response[0..<4], as: UTF8.self))'")
+            throw AdbError.protocolViolation("STAT returned '\(String(decoding: response[0..<4], as: UTF8.self))'")
         }
         let mode = Self.readLE32(response, at: 4)
         if mode == 0 { return nil }
@@ -91,7 +91,7 @@ public final class AdbSyncSession: @unchecked Sendable {
         try sendPathRequest("STA2", path)
         let response = try socket.readExactly(72)
         guard String(decoding: response[0..<4], as: UTF8.self) == "STA2" else {
-            throw AdbError.protocolViolation("STA2 trả về '\(String(decoding: response[0..<4], as: UTF8.self))'")
+            throw AdbError.protocolViolation("STA2 returned '\(String(decoding: response[0..<4], as: UTF8.self))'")
         }
         if Self.readLE32(response, at: 4) != 0 { return nil }  // errno (ENOENT, EACCES, ...)
         return RemoteFileEntry(
@@ -115,7 +115,7 @@ public final class AdbSyncSession: @unchecked Sendable {
                 _ = try socket.readExactly(16)
                 return entries
             }
-            guard id == "DENT" else { throw AdbError.protocolViolation("LIST trả về '\(id)'") }
+            guard id == "DENT" else { throw AdbError.protocolViolation("LIST returned '\(id)'") }
             let fields = try socket.readExactly(16)
             let nameLength = Int(Self.readLE32(fields, at: 12))
             let name = String(decoding: try socket.readExactly(nameLength), as: UTF8.self)
@@ -138,7 +138,7 @@ public final class AdbSyncSession: @unchecked Sendable {
                 _ = try socket.readExactly(72)  // the terminator is a zero-filled dent_v2 (76 bytes in total)
                 return entries
             }
-            guard id == "DNT2" else { throw AdbError.protocolViolation("LIS2 trả về '\(id)'") }
+            guard id == "DNT2" else { throw AdbError.protocolViolation("LIS2 returned '\(id)'") }
             let fields = try socket.readExactly(72)  // error … ctime, namelen
             let nameLength = Int(Self.readLE32(fields, at: 68))
             let name = String(decoding: try socket.readExactly(nameLength), as: UTF8.self)
@@ -191,7 +191,7 @@ public final class AdbSyncSession: @unchecked Sendable {
             case "FAIL":
                 throw try failure(length: value)
             default:
-                throw AdbError.protocolViolation("RECV trả về '\(id)'")
+                throw AdbError.protocolViolation("RECV returned '\(id)'")
             }
         }
         try handle.close()
@@ -213,7 +213,7 @@ public final class AdbSyncSession: @unchecked Sendable {
             case "DATA": data.append(contentsOf: try socket.readExactly(Int(value)))
             case "DONE": return data
             case "FAIL": throw try failure(length: value)
-            default: throw AdbError.protocolViolation("RECV trả về '\(id)'")
+            default: throw AdbError.protocolViolation("RECV returned '\(id)'")
             }
         }
     }
@@ -260,7 +260,7 @@ public final class AdbSyncSession: @unchecked Sendable {
         switch id {
         case "OKAY": return
         case "FAIL": throw try failure(length: value)
-        default: throw AdbError.protocolViolation("SEND trả về '\(id)'")
+        default: throw AdbError.protocolViolation("SEND returned '\(id)'")
         }
     }
 }

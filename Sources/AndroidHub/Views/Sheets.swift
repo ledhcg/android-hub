@@ -18,43 +18,43 @@ struct PairDeviceSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Thêm thiết bị qua Wi-Fi").font(.title2.weight(.semibold))
-            GroupBox("Android 11 trở lên — ghép bằng mã") {
+            Text("Add Device over Wi-Fi").font(.title2.weight(.semibold))
+            GroupBox("Android 11 and later — pair with a code") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Trên điện thoại: Cài đặt → Tuỳ chọn nhà phát triển → Gỡ lỗi không dây → “Ghép nối thiết bị bằng mã ghép nối”.").font(.caption).foregroundStyle(.secondary)
+                    Text("On the phone: Settings → Developer options → Wireless debugging → “Pair device with pairing code”.").font(.caption).foregroundStyle(.secondary)
                     HStack {
-                        TextField("IP:cổng ghép nối", text: $pairingAddress).textFieldStyle(.roundedBorder)
-                        TextField("Mã 6 số", text: $code).textFieldStyle(.roundedBorder).frame(width: 90)
-                        Button("Ghép đôi") { run { try store.client.pair(address: pairingAddress, code: code) } }.disabled(pairingAddress.isEmpty || code.isEmpty || busy)
+                        TextField("IP:pairing port", text: $pairingAddress).textFieldStyle(.roundedBorder)
+                        TextField("6-digit code", text: $code).textFieldStyle(.roundedBorder).frame(width: 90)
+                        Button("Pair") { run { try store.client.pair(address: pairingAddress, code: code) } }.disabled(pairingAddress.isEmpty || code.isEmpty || busy)
                     }
                     HStack {
-                        TextField("IP:cổng kết nối (hiện ở màn hình Gỡ lỗi không dây)", text: $connectAddress).textFieldStyle(.roundedBorder)
-                        Button("Kết nối") { run { try store.client.connect(address: connectAddress) } }.disabled(connectAddress.isEmpty || busy)
+                        TextField("IP:connection port (shown on the Wireless debugging screen)", text: $connectAddress).textFieldStyle(.roundedBorder)
+                        Button("Connect") { run { try store.client.connect(address: connectAddress) } }.disabled(connectAddress.isEmpty || busy)
                     }
                     HStack {
-                        Button("Tìm tự động (mDNS)") { discover() }
+                        Button("Discover Automatically (mDNS)") { discover() }
                         ForEach(services, id: \.name) { service in
-                            Button("\(service.kind == .pairing ? "Ghép" : "Kết nối") \(service.address)") {
+                            Button("\(service.kind == .pairing ? "Pair" : "Connect") \(service.address)") {
                                 if service.kind == .pairing { pairingAddress = service.address } else { connectAddress = service.address }
                             }.buttonStyle(.link)
                         }
                     }
                 }.padding(6)
             }
-            GroupBox("Android 10 trở xuống — qua USB") {
+            GroupBox("Android 10 and earlier — via USB") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Cắm cáp USB, chuyển adbd sang TCP/IP rồi rút cáp. Máy và Mac phải cùng mạng Wi-Fi.").font(.caption).foregroundStyle(.secondary)
+                    Text("Connect a USB cable, switch adbd to TCP/IP, then unplug the cable. The device and Mac must be on the same Wi-Fi network.").font(.caption).foregroundStyle(.secondary)
                     HStack {
-                        Picker("Thiết bị USB", selection: $usbSerial) {
-                            Text("Chọn…").tag("")
+                        Picker("USB Device", selection: $usbSerial) {
+                            Text("Choose…").tag("")
                             ForEach(usbDevices) { Text($0.displayName).tag($0.serial) }
                         }
-                        Button("Bật TCP/IP & kết nối") { enableTCPIP() }.disabled(usbSerial.isEmpty || busy)
+                        Button("Enable TCP/IP & Connect") { enableTCPIP() }.disabled(usbSerial.isEmpty || busy)
                     }
                 }.padding(6)
             }
             if !log.isEmpty { Text(log).font(.callout.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
-            HStack { Spacer(); Button("Đóng") { dismiss() }.keyboardShortcut(.cancelAction) }
+            HStack { Spacer(); Button("Close") { dismiss() }.keyboardShortcut(.cancelAction) }
         }
         .padding(20).frame(width: 560)
     }
@@ -72,7 +72,7 @@ struct PairDeviceSheet: View {
         Task {
             do {
                 services = try await offMain { try client.discoverWirelessServices() }
-                log = services.isEmpty ? "Không thấy dịch vụ nào. Bật “Gỡ lỗi không dây” trên điện thoại và để màn hình ghép đôi mở." : ""
+                log = services.isEmpty ? "No services found. Turn on “Wireless debugging” on the phone and keep the pairing screen open." : ""
             } catch { log = error.userMessage }
         }
     }
@@ -87,7 +87,7 @@ struct PairDeviceSheet: View {
                 let result: String = try await offMain {
                     let reply = try client.enableTCPIP(serial: serial)
                     Thread.sleep(forTimeInterval: 2)
-                    guard let ip = try client.wifiAddress(serial: serial) else { return reply + "\nKhông đọc được địa chỉ Wi-Fi của thiết bị." }
+                    guard let ip = try client.wifiAddress(serial: serial) else { return reply + "\nCouldn't read the device's Wi-Fi address." }
                     return reply + "\n" + (try client.connect(address: "\(ip):5555"))
                 }
                 log = result
@@ -111,27 +111,27 @@ struct NewEmulatorSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Emulator mới").font(.title2.weight(.semibold))
+            Text("New Emulator").font(.title2.weight(.semibold))
             Form {
-                TextField("Tên", text: $name)
-                Picker("Thiết bị", selection: $hardware) { ForEach(hardwareList, id: \.self) { Text($0).tag($0) } }
+                TextField("Name", text: $name)
+                Picker("Device", selection: $hardware) { ForEach(hardwareList, id: \.self) { Text($0).tag($0) } }
                 Picker("System image", selection: $image) {
                     ForEach(images) { Text($0.packageId.replacingOccurrences(of: "system-images;", with: "")).tag($0.packageId) }
                 }
             }
             if images.isEmpty {
-                Text("Chưa có system image nào. Tải một image bằng package id bên dưới (cần chấp nhận license trước: `sdkmanager --licenses`).").font(.caption).foregroundStyle(.secondary)
+                Text("No system images yet. Download one using the package ID below (accept the licenses first: `sdkmanager --licenses`).").font(.caption).foregroundStyle(.secondary)
             }
             HStack {
                 TextField("system-images;android-35;google_apis;arm64-v8a", text: $downloadId).textFieldStyle(.roundedBorder)
-                Button("Tải image") { download() }.disabled(downloadId.isEmpty || busy)
+                Button("Download Image") { download() }.disabled(downloadId.isEmpty || busy)
             }
             if !log.isEmpty { ScrollView { Text(log).font(.caption.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(maxHeight: 100) }
             HStack {
                 if busy { ProgressView().controlSize(.small) }
                 Spacer()
-                Button("Huỷ") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button("Tạo") { create() }.buttonStyle(.borderedProminent).disabled(name.isEmpty || image.isEmpty || busy)
+                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Create") { create() }.buttonStyle(.borderedProminent).disabled(name.isEmpty || image.isEmpty || busy)
             }
         }
         .padding(20).frame(width: 520)
@@ -169,7 +169,7 @@ struct NewEmulatorSheet: View {
             do {
                 try await offMain { try manager.installSystemImage(id) }
                 images = manager.installedSystemImages()
-                log = "Đã cài \(id)"
+                log = "Installed \(id)"
             } catch { log = error.userMessage }
         }
     }
@@ -187,24 +187,24 @@ struct AVDDetailView: View {
             Image(systemName: "desktopcomputer").font(.system(size: 56)).foregroundStyle(.secondary)
             Text(avd.displayName).font(.title2.weight(.semibold))
             Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 4) {
-                row("Thiết bị", avd.deviceDefinition)
+                row("Device", avd.deviceDefinition)
                 row("API", avd.apiTarget)
                 row("ABI", avd.abi)
-                row("Màn hình", avd.width.flatMap { w in avd.height.map { "\(w)×\($0) @\(avd.density ?? 0)dpi" } })
+                row("Display", avd.width.flatMap { w in avd.height.map { "\(w)×\($0) @\(avd.density ?? 0)dpi" } })
                 row("RAM", avd.ramMegabytes.map { "\($0) MB" })
-                row("Play Store", avd.hasPlayStore ? "Có" : "Không")
+                row("Play Store", avd.hasPlayStore ? "Yes" : "No")
                 row("System image", avd.systemImage)
             }
             .font(.callout)
             HStack {
-                Toggle("Không cửa sổ", isOn: $headless)
+                Toggle("No Window", isOn: $headless)
                 Toggle("Cold boot", isOn: $coldBoot)
-                Toggle("Xoá dữ liệu", isOn: $wipe)
+                Toggle("Wipe Data", isOn: $wipe)
             }
             if store.startingAVDs.contains(avd.name) {
-                ProgressView("Đang khởi động…")
+                ProgressView("Starting…")
             } else {
-                Button("Khởi động") { store.start(avd: avd, options: EmulatorLaunchOptions(headless: headless, coldBoot: coldBoot, wipeData: wipe)) }
+                Button("Start") { store.start(avd: avd, options: EmulatorLaunchOptions(headless: headless, coldBoot: coldBoot, wipeData: wipe)) }
                     .buttonStyle(.borderedProminent).controlSize(.large)
             }
         }

@@ -4,7 +4,7 @@ import IOKit
 /// Reads vendor/product names for attached USB devices from the macOS I/O Registry.
 ///
 /// adb reports nothing but a serial for an `unauthorized` phone; the registry still knows it is
-/// a "Xiaomi MI 8", which is what Device Hub-style UIs need to show before pairing succeeds.
+/// a "Xiaomi MI 8", which a UI can show before pairing succeeds.
 public enum MacUSBRegistry {
     public struct Entry: Sendable, Equatable {
         public let vendorName: String?

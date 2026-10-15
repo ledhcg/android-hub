@@ -4,15 +4,15 @@ import EmulatorKit
 import Foundation
 
 enum SidebarFilter: String, CaseIterable, Identifiable {
-    case all = "Tất cả"
-    case physical = "Thiết bị thật"
+    case all = "All"
+    case physical = "Physical Devices"
     case emulators = "Emulator"
     var id: String { rawValue }
 }
 
 enum SidebarSort: String, CaseIterable, Identifiable {
-    case name = "Tên"
-    case status = "Trạng thái"
+    case name = "Name"
+    case status = "Status"
     var id: String { rawValue }
 }
 
@@ -173,7 +173,7 @@ final class DeviceStore: ObservableObject {
                 selection = serial
             } catch {
                 startingAVDs.remove(avd.name)
-                report(error, title: "Không khởi động được \(avd.displayName)")
+                report(error, title: "Couldn't Start \(avd.displayName)")
             }
         }
     }
@@ -184,7 +184,7 @@ final class DeviceStore: ObservableObject {
         let client = self.client
         Task {
             do { try await offMain { try manager.stop(serial: serial, client: client) } } catch {
-                report(error, title: "Không tắt được emulator")
+                report(error, title: "Couldn't Stop Emulator")
             }
         }
     }
@@ -192,7 +192,7 @@ final class DeviceStore: ObservableObject {
     func wipe(avd: AVD) {
         guard let manager = avdManager else { return }
         Task {
-            do { try await offMain { try manager.wipeData(name: avd.name) } } catch { report(error, title: "Không xoá được dữ liệu") }
+            do { try await offMain { try manager.wipeData(name: avd.name) } } catch { report(error, title: "Couldn't Wipe Data") }
         }
     }
 
@@ -203,7 +203,7 @@ final class DeviceStore: ObservableObject {
                 try await offMain { try manager.deleteAVD(name: avd.name) }
                 if selection == "avd:\(avd.name)" { selection = nil }
                 refreshAVDs()
-            } catch { report(error, title: "Không xoá được AVD") }
+            } catch { report(error, title: "Couldn't Delete AVD") }
         }
     }
 
@@ -211,7 +211,7 @@ final class DeviceStore: ObservableObject {
         let client = self.client
         Task {
             do { try await offMain { try client.disconnect(address: device.serial) } } catch {
-                report(error, title: "Không ngắt kết nối được")
+                report(error, title: "Couldn't Disconnect")
             }
         }
     }

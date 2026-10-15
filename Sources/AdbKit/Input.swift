@@ -1,6 +1,6 @@
 import Foundation
 
-/// Hardware/navigation buttons Device Hub draws on the bezel, plus the Android-specific extras.
+/// Hardware/navigation buttons, plus the Android-specific extras.
 public enum DeviceButton: String, Sendable, CaseIterable, Codable {
     case home, back, recents, power, volumeUp = "volume-up", volumeDown = "volume-down", mute
     case menu, search, assist, enter, delete, tab, escape
@@ -64,7 +64,7 @@ extension AdbClient {
     /// crashing `input` — the app types Unicode through the clipboard instead.
     public func type(serial: String, text: String) throws {
         guard text.unicodeScalars.allSatisfy({ $0.isASCII }) else {
-            throw AdbError.adbFailure("`input text` chỉ gõ được ASCII. Dùng ứng dụng (dán qua clipboard) để gõ ký tự Unicode như tiếng Việt.")
+            throw AdbError.adbFailure("`input text` can only type ASCII. Use the app (paste via the clipboard) to enter Unicode characters such as Vietnamese.")
         }
         let lines = text.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
         for (index, line) in lines.enumerated() {

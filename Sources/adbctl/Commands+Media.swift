@@ -21,7 +21,7 @@ func recordCommand(_ context: Context) async throws -> CommandOutput {
             client: context.client, serial: serial, configuration: configuration,
             handlers: ScrcpyHandlers(onPacket: { pipeline.handle($0) }))
         let startedAt = Date()
-        FileHandle.standardError.write(Data("Đang quay \(session.deviceName) \(session.initialSize.width)x\(session.initialSize.height) trong \(duration)s...\n".utf8))
+        FileHandle.standardError.write(Data("Recording \(session.deviceName) \(session.initialSize.width)x\(session.initialSize.height) for \(duration)s...\n".utf8))
 
         // Optional scripted input — also the quickest end-to-end check of the control channel.
         let afterSeconds = try context.args.intOption("--after", default: 2) ?? 2
@@ -49,12 +49,12 @@ func recordCommand(_ context: Context) async throws -> CommandOutput {
         let paths: [String] = segments.map { $0.path }
         return CommandOutput(json: obj(("files", paths), ("frames", frames))) {
             segments.forEach { print($0.path) }
-            print("\(frames) khung hình, \(session.initialSize.width)x\(session.initialSize.height)")
+            print("\(frames) frames, \(session.initialSize.width)x\(session.initialSize.height)")
         }
     }
 
 func registerMediaCommands() {
-    register("device screenshot", "[--output <file.png>] [--force]", "Chụp màn hình ở độ phân giải đầy đủ của thiết bị") { context in
+    register("device screenshot", "[--output <file.png>] [--force]", "Take a screenshot at the device's full resolution") { context in
         let serial = try context.serial()
         let url = expandPath(context.args.option("--output", "-o") ?? "screenshot-\(serial)-\(timestamp()).png")
         try ensureWritable(url, context.args)
@@ -65,14 +65,14 @@ func registerMediaCommands() {
 
     register(
         "device record", "[--duration 10] [--output <file.mp4>] [--max-size N] [--tap x,y --after s] [--press button] [--force]",
-        "Quay video màn hình (H.264 → MP4, không mã hoá lại) qua scrcpy-server", run: recordCommand)
+        "Record the screen (H.264 → MP4, no re-encoding) via scrcpy-server", run: recordCommand)
 
-    register("device input tap", "<x> <y>", "Chạm tại toạ độ pixel") { context in
+    register("device input tap", "<x> <y>", "Tap at pixel coordinates") { context in
         try context.client.tap(serial: try context.serial(), x: try context.int(0, "x"), y: try context.int(1, "y"))
         return CommandOutput(json: ["ok": true]) {}
     }
 
-    register("device input swipe", "<x1> <y1> <x2> <y2> [ms]", "Vuốt") { context in
+    register("device input swipe", "<x1> <y1> <x2> <y2> [ms]", "Swipe") { context in
         let duration = context.rest.count > 4 ? try context.int(4, "ms") : 300
         try context.client.swipe(
             serial: try context.serial(), from: (try context.int(0, "x1"), try context.int(1, "y1")),
@@ -80,15 +80,15 @@ func registerMediaCommands() {
         return CommandOutput(json: ["ok": true]) {}
     }
 
-    register("device input text", "<văn bản>", "Gõ văn bản vào ô đang focus") { context in
+    register("device input text", "<text>", "Type text into the focused field") { context in
         try context.client.type(serial: try context.serial(), text: context.rest.joined(separator: " "))
         return CommandOutput(json: ["ok": true]) {}
     }
 
-    register("device button", "<\(DeviceButton.allCases.map(\.rawValue).joined(separator: "|"))>", "Bấm nút phần cứng / điều hướng") { context in
-        let name = try context.positional(0, "tên nút")
-        guard let button = DeviceButton(rawValue: name) else { throw CLIError.invalidValue("nút", name) }
+    register("device button", "<\(DeviceButton.allCases.map(\.rawValue).joined(separator: "|"))>", "Press a hardware / navigation button") { context in
+        let name = try context.positional(0, "button name")
+        guard let button = DeviceButton(rawValue: name) else { throw CLIError.invalidValue("button", name) }
         try context.client.press(button, serial: try context.serial())
-        return CommandOutput(json: ["pressed": name]) { print("Đã bấm \(name)") }
+        return CommandOutput(json: ["pressed": name]) { print("Pressed \(name)") }
     }
 }

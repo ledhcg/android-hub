@@ -67,19 +67,19 @@ public enum EmulatorError: Error, CustomStringConvertible, Equatable {
 
     public var description: String {
         switch self {
-        case .sdkNotFound: "Không tìm thấy Android SDK. Đặt ANDROID_HOME hoặc cài qua Android Studio."
-        case .toolMissing(let tool): "Thiếu công cụ '\(tool)'. Cài 'Android SDK Command-line Tools' trong SDK Manager."
-        case .javaMissing: "Không tìm thấy JDK (avdmanager/sdkmanager cần Java). Cài Android Studio hoặc đặt JAVA_HOME."
+        case .sdkNotFound: "Android SDK not found. Set ANDROID_HOME or install it via Android Studio."
+        case .toolMissing(let tool): "Missing tool '\(tool)'. Install 'Android SDK Command-line Tools' in the SDK Manager."
+        case .javaMissing: "JDK not found (avdmanager/sdkmanager require Java). Install Android Studio or set JAVA_HOME."
         case .commandFailed(let message): message
-        case .notFound(let name): "Không tìm thấy AVD '\(name)'."
-        case .bootTimeout(let name): "Emulator '\(name)' chưa khởi động xong trong thời gian chờ."
-        case .stillRunning(let name): "AVD '\(name)' đang chạy. Hãy tắt emulator trước."
-        case .exitedEarly(let detail): "Emulator thoát ngay sau khi khởi động.\n\(detail)"
+        case .notFound(let name): "AVD '\(name)' not found."
+        case .bootTimeout(let name): "Emulator '\(name)' did not finish booting within the timeout."
+        case .stillRunning(let name): "AVD '\(name)' is running. Shut down the emulator first."
+        case .exitedEarly(let detail): "The emulator exited right after launch.\n\(detail)"
         }
     }
 }
 
-/// Create, start, stop and delete Android Virtual Devices — the counterpart of Device Hub's simulator management.
+/// Create, start, stop and delete Android Virtual Devices.
 public struct AvdManager: Sendable {
     public let sdk: AndroidSDK
     public let avdHome: URL
@@ -166,7 +166,7 @@ public struct AvdManager: Sendable {
         // avdmanager asks "Do you wish to create a custom hardware profile?" — answer no.
         _ = try runJavaTool(sdk.avdmanager, name: "avdmanager", arguments: arguments, stdin: "no\n")
         guard let created = try listAVDs().first(where: { $0.name == name }) else {
-            throw EmulatorError.commandFailed("avdmanager không tạo được AVD '\(name)'.")
+            throw EmulatorError.commandFailed("avdmanager could not create AVD '\(name)'.")
         }
         return created
     }
@@ -193,7 +193,7 @@ public struct AvdManager: Sendable {
         environment["ANDROID_AVD_HOME"] = avdHome.path
         let result = try Self.run(tool, arguments: arguments, environment: environment, stdin: stdin)
         guard result.status == 0 else {
-            throw EmulatorError.commandFailed((result.output.isEmpty ? "\(name) thoát với mã \(result.status)" : result.output).trimmingCharacters(in: .whitespacesAndNewlines))
+            throw EmulatorError.commandFailed((result.output.isEmpty ? "\(name) exited with code \(result.status)" : result.output).trimmingCharacters(in: .whitespacesAndNewlines))
         }
         return result.output
     }
@@ -236,7 +236,7 @@ public struct AvdManager: Sendable {
             guard !process.isRunning else { return nil }
             let log = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
             let tail = log.split(whereSeparator: \.isNewline).suffix(8).joined(separator: "\n")
-            return "Mã thoát \(process.terminationStatus). Log: \(logURL.path)\n\(tail)"
+            return "Exit code \(process.terminationStatus). Log: \(logURL.path)\n\(tail)"
         }
     }
 

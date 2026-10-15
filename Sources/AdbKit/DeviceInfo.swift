@@ -41,7 +41,7 @@ extension AdbClient {
         let script = "getprop; echo \(marker)wm; wm size; wm density; echo \(marker)battery; dumpsys battery"
         let result = try shell(serial: serial, script)
         guard result.exitCode == 0 || !result.stdout.isEmpty else {
-            throw AdbError.adbFailure("shell thoát với mã \(result.exitCode): \(result.stderr)")
+            throw AdbError.adbFailure("shell exited with code \(result.exitCode): \(result.stderr)")
         }
         return DeviceInfoDetails.parse(output: result.stdout, serial: serial, sectionMarker: marker)
     }

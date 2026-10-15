@@ -194,7 +194,7 @@ public enum SettingChange: Sendable, Equatable {
             // `cmd connectivity airplane-mode` exists on Android 11+. Older releases only allow the
             // protected AIRPLANE_MODE broadcast from the system, so fail clearly instead of half-applying.
             return [
-                "cmd connectivity airplane-mode \(word(on)) || { echo 'Chế độ máy bay qua adb cần Android 11+' >&2; exit 1; }"
+                "cmd connectivity airplane-mode \(word(on)) || { echo 'Airplane mode via adb requires Android 11+' >&2; exit 1; }"
             ]
         case .bluetooth(let on):
             return ["cmd bluetooth_manager \(word(on)) 2>/dev/null || svc bluetooth \(word(on))"]
@@ -318,7 +318,7 @@ extension AdbClient {
             return
         }
         if change.isEmulatorOnly {
-            throw AdbError.adbFailure("Tính năng này chỉ có trên Android Emulator.")
+            throw AdbError.adbFailure("This feature is only available on the Android Emulator.")
         }
         if case .mediaVolume(let target) = change {
             try setMediaVolume(target, serial: serial)

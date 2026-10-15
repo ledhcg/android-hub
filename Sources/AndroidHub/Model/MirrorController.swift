@@ -142,7 +142,7 @@ final class MirrorController: ObservableObject {
         if case .clipboard(let text) = deviceMessage {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(text, forType: .string)
-            showToast("Đã chép clipboard từ thiết bị")
+            showToast("Copied clipboard from device")
         }
     }
 
@@ -188,9 +188,9 @@ final class MirrorController: ObservableObject {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.writeObjects([image])
                 }
-                showToast("Đã lưu \(url.lastPathComponent) và chép vào clipboard")
+                showToast("Saved \(url.lastPathComponent) and copied to clipboard")
             } catch {
-                showToast("Chụp màn hình lỗi: \(error.userMessage)")
+                showToast("Screenshot failed: \(error.userMessage)")
             }
         }
     }
@@ -213,10 +213,10 @@ final class MirrorController: ObservableObject {
         Task {
             let files = await recorder.finish()
             if let file = files.first {
-                showToast("Đã lưu \(file.lastPathComponent)")
+                showToast("Saved \(file.lastPathComponent)")
                 NSWorkspace.shared.activateFileViewerSelecting(files)
             } else {
-                showToast("Không có khung hình nào để lưu")
+                showToast("No frame to save")
             }
         }
     }

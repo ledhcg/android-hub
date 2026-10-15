@@ -159,17 +159,17 @@ final class AppsModel: PanelModel {
         }
     }
 
-    func launch(_ package: String) { run("Đã mở \(package)") { try $0.launchApp(serial: $1, package: package) } }
-    func stop(_ package: String) { run("Đã dừng \(package)") { try $0.forceStopApp(serial: $1, package: package) } }
-    func clear(_ package: String) { run("Đã xoá dữ liệu \(package)") { try $0.clearAppData(serial: $1, package: package) } }
-    func openInfo(_ package: String) { run("Đã mở thông tin \(package)") { try $0.openAppInfo(serial: $1, package: package) } }
+    func launch(_ package: String) { run("Opened \(package)") { try $0.launchApp(serial: $1, package: package) } }
+    func stop(_ package: String) { run("Stopped \(package)") { try $0.forceStopApp(serial: $1, package: package) } }
+    func clear(_ package: String) { run("Cleared data for \(package)") { try $0.clearAppData(serial: $1, package: package) } }
+    func openInfo(_ package: String) { run("Opened info for \(package)") { try $0.openAppInfo(serial: $1, package: package) } }
 
     func uninstall(_ package: String) {
         let (client, serial) = (self.client, self.serial)
         Task {
             do {
                 try await offMain { try client.uninstallApp(serial: serial, package: package) }
-                message = "Đã gỡ \(package)"
+                message = "Uninstalled \(package)"
                 selected = nil
                 details = nil
                 load()
@@ -189,7 +189,7 @@ final class AppsModel: PanelModel {
 
     func install(_ urls: [URL], options: InstallOptions = InstallOptions()) {
         let (client, serial) = (self.client, self.serial)
-        installProgress = "Đang tải lên…"
+        installProgress = "Uploading…"
         Task {
             do {
                 try await offMain {
@@ -197,15 +197,15 @@ final class AppsModel: PanelModel {
                         Task { @MainActor in
                             switch stage {
                             case .uploading(let file, let sent, let total):
-                                self.installProgress = "Tải lên \(file) \(total > 0 ? Int(sent * 100 / total) : 0)%"
-                            case .installing: self.installProgress = "Đang cài đặt…"
+                                self.installProgress = "Uploading \(file) \(total > 0 ? Int(sent * 100 / total) : 0)%"
+                            case .installing: self.installProgress = "Installing…"
                             case .done: break
                             }
                         }
                     }
                 }
                 installProgress = nil
-                message = "Đã cài \(urls.map(\.lastPathComponent).joined(separator: ", "))"
+                message = "Installed \(urls.map(\.lastPathComponent).joined(separator: ", "))"
                 load()
             } catch {
                 installProgress = nil
@@ -219,7 +219,7 @@ final class AppsModel: PanelModel {
         Task {
             do {
                 let files = try await offMain { try client.extractApks(serial: serial, package: package, to: directory) }
-                message = "Đã lấy \(files.count) file APK"
+                message = "Pulled \(files.count) APK file(s)"
                 NSWorkspace.shared.activateFileViewerSelecting(files)
             } catch { fail(error) }
         }
@@ -293,7 +293,7 @@ final class FilesModel: PanelModel {
     func pull(_ names: [String], to directory: URL) {
         let (client, serial, container) = (self.client, self.serial, containerPackage)
         let remotes = names.map(join)
-        transfer = "Đang tải về…"
+        transfer = "Downloading…"
         Task {
             defer { transfer = nil }
             do {
@@ -309,7 +309,7 @@ final class FilesModel: PanelModel {
                         return try client.pull(serial: serial, remote: remote, toDirectory: directory, conflict: .uniquify)
                     }
                 }
-                message = "Đã tải \(results.count) mục"
+                message = "Downloaded \(results.count) item(s)"
                 NSWorkspace.shared.activateFileViewerSelecting(results)
             } catch { fail(error) }
         }
@@ -317,16 +317,16 @@ final class FilesModel: PanelModel {
 
     func push(_ urls: [URL]) {
         guard containerPackage == nil else {
-            error = "Đẩy file vào data container chưa hỗ trợ; dùng thư mục chia sẻ như /sdcard."
+            error = "Pushing files into an app's data container isn't supported; use a shared folder such as /sdcard."
             return
         }
         let (client, serial, path) = (self.client, self.serial, loadedPath)
-        transfer = "Đang tải lên…"
+        transfer = "Uploading…"
         Task {
             defer { transfer = nil }
             do {
                 try await offMain { for url in urls { try client.push(serial: serial, local: url, toDirectory: path) } }
-                message = "Đã tải lên \(urls.count) mục"
+                message = "Uploaded \(urls.count) item(s)"
                 load(path)
             } catch { fail(error) }
         }
@@ -488,7 +488,7 @@ final class DiagnosticsModel: PanelModel {
 
     func dump(_ service: String) {
         let (client, serial) = (self.client, self.serial)
-        progress = "Đang chạy dumpsys \(service)…"
+        progress = "Running dumpsys \(service)…"
         Task {
             defer { progress = nil }
             do { dumpText = try await offMain { try client.dumpsys(serial: serial, service: service) } } catch { fail(error) }
@@ -497,14 +497,14 @@ final class DiagnosticsModel: PanelModel {
 
     func collect(to directory: URL, includeBugReport: Bool) {
         let (client, serial) = (self.client, self.serial)
-        progress = "Đang thu thập…"
+        progress = "Collecting…"
         Task {
             defer { progress = nil }
             do {
                 let folder = try await client.collectDiagnostics(serial: serial, to: directory, includeBugReport: includeBugReport) { step in
-                    Task { @MainActor in self.progress = "Đang thu thập: \(step)…" }
+                    Task { @MainActor in self.progress = "Collecting: \(step)…" }
                 }
-                message = "Đã lưu \(folder.lastPathComponent)"
+                message = "Saved \(folder.lastPathComponent)"
                 NSWorkspace.shared.activateFileViewerSelecting([folder])
             } catch { fail(error) }
         }

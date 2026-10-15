@@ -1,0 +1,42 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Expected vs. actual behaviour, and exact steps to reproduce.
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version and device model
+      placeholder: "Android 14, Pixel 8 (or emulator API 35)"
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection
+      options: [USB, Wi-Fi (wireless debugging), Emulator]
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options: [AndroidHub app, adbctl CLI, Emulator management, Other]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output / logs
+      description: "`adbctl list devices`, `adb version`, error text. Remove anything private."
+      render: shell

@@ -2,7 +2,7 @@ import Foundation
 
 /// Turns the user's `--device <something>` into exactly one attached `Device`.
 ///
-/// Apple's `devicectl` accepts "UUID, ECID, UDID, or name". Android's equivalent is resolved in
+/// A device query (serial or name) is resolved in
 /// tiers, strictest first; the first tier that matches anything decides:
 ///
 ///  1. exact serial (case-sensitive)

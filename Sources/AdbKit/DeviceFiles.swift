@@ -14,7 +14,7 @@ extension URL {
     /// Applies a conflict policy to a download destination.
     public func resolved(policy: ConflictPolicy) throws -> URL {
         if policy == .refuse, FileManager.default.fileExists(atPath: path) {
-            throw AdbError.adbFailure("'\(lastPathComponent)' đã tồn tại ở đích (dùng --force để ghi đè).")
+            throw AdbError.adbFailure("'\(lastPathComponent)' already exists at the destination (use --force to overwrite).")
         }
         return uniqueIfExists(policy: policy)
     }
@@ -35,7 +35,7 @@ extension URL {
     }
 }
 
-/// File management on the device — the Android counterpart of Device Hub's DeviceFS mount.
+/// File management on the device.
 extension AdbClient {
     /// Paths whose recursive deletion is never what anyone meant.
     private static let protectedRemotePaths: Set<String> = [
@@ -64,7 +64,7 @@ extension AdbClient {
     ) throws -> URL {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let session = try syncSession(serial: serial)
-        guard let entry = try session.stat(remote) else { throw AdbError.adbFailure("Không tìm thấy '\(remote)' trên thiết bị.") }
+        guard let entry = try session.stat(remote) else { throw AdbError.adbFailure("'\(remote)' not found on the device.") }
         let name = (remote as NSString).lastPathComponent
         let destination = try directory.appendingPathComponent(name.isEmpty ? "root" : name).resolved(policy: conflict)
         if entry.isDirectory {
@@ -104,7 +104,7 @@ extension AdbClient {
     ) throws {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: local.path, isDirectory: &isDirectory) else {
-            throw AdbError.adbFailure("Không thấy file cục bộ '\(local.path)'.")
+            throw AdbError.adbFailure("Local file not found: '\(local.path)'.")
         }
         if isDirectory.boolValue {
             // The sync SEND service creates parent directories implicitly on modern adbd, but an empty
@@ -128,7 +128,7 @@ extension AdbClient {
         var normalized = path
         while normalized.count > 1, normalized.hasSuffix("/") { normalized.removeLast() }
         guard !normalized.isEmpty, !Self.protectedRemotePaths.contains(normalized) else {
-            throw AdbError.adbFailure("Từ chối xoá '\(path)': đây là thư mục hệ thống/gốc của bộ nhớ.")
+            throw AdbError.adbFailure("Refusing to delete '\(path)': it is a system or storage root directory.")
         }
         try run(serial: serial, "rm \(recursive ? "-rf" : "-f") \(SettingChange.shellQuote(path))")
     }
@@ -136,7 +136,7 @@ extension AdbClient {
     public func renameFile(serial: String, from: String, to: String) throws {
         // `mv` silently replaces an existing target; refuse instead of destroying data.
         if try syncSession(serial: serial).stat(to) != nil {
-            throw AdbError.adbFailure("Đã có mục tên '\((to as NSString).lastPathComponent)' ở đích.")
+            throw AdbError.adbFailure("An item named '\((to as NSString).lastPathComponent)' already exists at the destination.")
         }
         try run(serial: serial, "mv \(SettingChange.shellQuote(from)) \(SettingChange.shellQuote(to))")
     }
@@ -145,7 +145,7 @@ extension AdbClient {
     public func screenshot(serial: String) throws -> Data {
         let data = try shellData(serial: serial, "screencap -p")
         guard data.starts(with: [0x89, 0x50, 0x4E, 0x47]) else {
-            throw AdbError.adbFailure("`screencap` không trả về PNG hợp lệ (màn hình có thể đang bị khoá bảo mật).")
+            throw AdbError.adbFailure("`screencap` did not return a valid PNG (the screen may be protected by a secure lock).")
         }
         return data
     }

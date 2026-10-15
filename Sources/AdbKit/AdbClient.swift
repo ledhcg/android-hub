@@ -147,7 +147,7 @@ public struct AdbClient: Sendable {
         try process.run()
         process.waitUntilExit()
         guard process.terminationStatus == 0 else {
-            throw AdbError.serverUnreachable("`adb start-server` thoát với mã \(process.terminationStatus)")
+            throw AdbError.serverUnreachable("`adb start-server` exited with code \(process.terminationStatus)")
         }
     }
 
@@ -165,7 +165,7 @@ public struct AdbClient: Sendable {
             let message = String(decoding: try socket.readExactly(length), as: UTF8.self)
             throw Self.failure(message, serial: serial)
         default:
-            throw AdbError.protocolViolation("trạng thái '\(status)'")
+            throw AdbError.protocolViolation("status '\(status)'")
         }
     }
 

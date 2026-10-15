@@ -45,14 +45,14 @@ func register(_ path: String, _ summary: String, run: @escaping (Context) async 
 func printUsage() {
     print(
         """
-        adbctl — quản lý thiết bị Android từ dòng lệnh, theo phong cách `devicectl` của Apple.
+        adbctl — manage Android devices from the command line.
 
-        Tuỳ chọn chung:
-          -d, --device <serial|tên>     Thiết bị cần thao tác (bỏ qua nếu chỉ có 1 thiết bị)
-          --json-output <đường dẫn|->   Ghi kết quả JSON có version ra file ('-' = stdout)
-          -h, --help                    Hiện trợ giúp (kèm lệnh để xem chi tiết lệnh đó)
+        Global options:
+          -d, --device <serial|name>    Device to operate on (optional if only one is connected)
+          --json-output <path|->        Write versioned JSON results to a file ('-' = stdout)
+          -h, --help                    Show help (add a command for details on that command)
 
-        Lệnh:
+        Commands:
         """)
     var lastGroup = ""
     for command in registry {

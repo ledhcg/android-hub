@@ -42,11 +42,11 @@ public enum ScrcpyError: Error, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case .serverJarMissing: "Không tìm thấy scrcpy-server trong resources của ứng dụng."
-        case .serverExited(let log): "scrcpy-server dừng đột ngột trên thiết bị.\n\(log)"
-        case .connectTimeout(let log): "Hết thời gian chờ scrcpy-server khởi động.\n\(log)"
-        case .unsupportedCodec(let id): String(format: "Codec video không hỗ trợ: 0x%08x", id)
-        case .disconnected: "Mất kết nối với thiết bị."
+        case .serverJarMissing: "scrcpy-server not found in the app's resources."
+        case .serverExited(let log): "scrcpy-server stopped unexpectedly on the device.\n\(log)"
+        case .connectTimeout(let log): "Timed out waiting for scrcpy-server to start.\n\(log)"
+        case .unsupportedCodec(let id): String(format: "Unsupported video codec: 0x%08x", id)
+        case .disconnected: "Lost connection to the device."
         }
     }
 }
@@ -241,7 +241,7 @@ public final class ScrcpySession: @unchecked Sendable {
             Thread.sleep(forTimeInterval: 0.15)
         }
         guard let video else {
-            if let lastError { serverLog.append("kết nối cuối cùng thất bại: \(lastError)") }
+            if let lastError { serverLog.append("last connection attempt failed: \(lastError)") }
             throw failure(ScrcpyError.connectTimeout)
         }
 

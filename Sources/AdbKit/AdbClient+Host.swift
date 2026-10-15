@@ -112,7 +112,7 @@ extension AdbClient {
     @discardableResult
     public func emulatorCommand(serial: String, _ command: String) throws -> String {
         guard serial.hasPrefix("emulator-"), let port = Int(serial.dropFirst("emulator-".count)) else {
-            throw AdbError.adbFailure("'\(serial)' không phải emulator.")
+            throw AdbError.adbFailure("'\(serial)' is not an emulator.")
         }
         return try EmulatorConsole.send(port: port, command: command)
     }

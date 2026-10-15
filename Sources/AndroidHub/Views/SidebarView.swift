@@ -35,26 +35,26 @@ struct SidebarView: View {
                     }
                 }
                 if !physical.isEmpty {
-                    Section("Thiết bị thật") { ForEach(physical) { row($0).tag($0.id) } }
+                    Section("Physical Devices") { ForEach(physical) { row($0).tag($0.id) } }
                 }
                 if !emulators.isEmpty {
                     Section("Emulator") { ForEach(emulators) { row($0).tag($0.id) } }
                 }
                 if items.isEmpty {
                     ContentUnavailableView(
-                        "Chưa có thiết bị", systemImage: "cable.connector",
-                        description: Text("Cắm điện thoại bằng cáp USB và bật USB debugging, hoặc thêm thiết bị qua nút +."))
+                        "No Devices", systemImage: "cable.connector",
+                        description: Text("Connect a phone with a USB cable and turn on USB debugging, or add a device with the + button."))
                 }
             }
             .listStyle(.sidebar)
         }
-        .searchable(text: $store.searchText, placement: .sidebar, prompt: "Tìm thiết bị")
+        .searchable(text: $store.searchText, placement: .sidebar, prompt: "Search Devices")
         .confirmationDialog(
             pendingTitle, isPresented: Binding(get: { pending != nil }, set: { if !$0 { pending = nil } }), titleVisibility: .visible
         ) {
             switch pending {
-            case .wipe(let avd): Button("Xoá dữ liệu", role: .destructive) { store.wipe(avd: avd) }
-            case .delete(let avd): Button("Xoá AVD", role: .destructive) { store.delete(avd: avd) }
+            case .wipe(let avd): Button("Wipe Data", role: .destructive) { store.wipe(avd: avd) }
+            case .delete(let avd): Button("Delete AVD", role: .destructive) { store.delete(avd: avd) }
             case nil: EmptyView()
             }
         } message: {
@@ -64,10 +64,10 @@ struct SidebarView: View {
 
     private var controls: some View {
         HStack {
-            Picker("Lọc", selection: $store.filter) { ForEach(SidebarFilter.allCases) { Text($0.rawValue).tag($0) } }
+            Picker("Filter", selection: $store.filter) { ForEach(SidebarFilter.allCases) { Text($0.rawValue).tag($0) } }
                 .labelsHidden().pickerStyle(.menu)
             Menu {
-                Picker("Sắp xếp", selection: $store.sort) { ForEach(SidebarSort.allCases) { Text($0.rawValue).tag($0) } }
+                Picker("Sort", selection: $store.sort) { ForEach(SidebarSort.allCases) { Text($0.rawValue).tag($0) } }
             } label: { Image(systemName: "arrow.up.arrow.down") }.menuStyle(.borderlessButton).fixedSize()
         }
         .padding(.horizontal, 10).padding(.top, 8).padding(.bottom, 4)
@@ -83,51 +83,51 @@ struct SidebarView: View {
                     Text(subtitle(for: device)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer()
-                if store.controller(for: device.serial).isRunning { Image(systemName: "dot.radiowaves.left.and.right").foregroundStyle(.green).help("Đang xem màn hình") }
+                if store.controller(for: device.serial).isRunning { Image(systemName: "dot.radiowaves.left.and.right").foregroundStyle(.green).help("Viewing screen") }
             }
             .contextMenu {
-                Button("Mở cửa sổ nhỏ gọn") { openWindow(value: device.serial) }.disabled(!device.isReady)
+                Button("Open Compact Window") { openWindow(value: device.serial) }.disabled(!device.isReady)
                 if device.connection == .emulator {
-                    Button("Tắt emulator") { store.stopEmulator(serial: device.serial) }
+                    Button("Stop Emulator") { store.stopEmulator(serial: device.serial) }
                 }
                 if device.connection == .network {
-                    Button("Ngắt kết nối") { store.disconnect(device: device) }
+                    Button("Disconnect") { store.disconnect(device: device) }
                 }
-                Button("Chép serial") { copy(device.serial) }
+                Button("Copy Serial") { copy(device.serial) }
             }
         case .avd(let avd):
             HStack {
                 Image(systemName: "desktopcomputer").foregroundStyle(.secondary).frame(width: 20)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(avd.displayName).lineLimit(1)
-                    Text(store.startingAVDs.contains(avd.name) ? "Đang khởi động…" : "AVD • \(avd.apiTarget ?? "")").font(.caption).foregroundStyle(.secondary)
+                    Text(store.startingAVDs.contains(avd.name) ? "Starting…" : "AVD • \(avd.apiTarget ?? "")").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
                 if store.startingAVDs.contains(avd.name) { ProgressView().controlSize(.small) }
             }
             .contextMenu {
-                Button("Khởi động") { store.start(avd: avd) }
-                Button("Khởi động (cold boot)") { store.start(avd: avd, options: EmulatorLaunchOptions(coldBoot: true)) }
-                Button("Khởi động không cửa sổ") { store.start(avd: avd, options: EmulatorLaunchOptions(headless: true)) }
+                Button("Start") { store.start(avd: avd) }
+                Button("Start (Cold Boot)") { store.start(avd: avd, options: EmulatorLaunchOptions(coldBoot: true)) }
+                Button("Start Without Window") { store.start(avd: avd, options: EmulatorLaunchOptions(headless: true)) }
                 Divider()
-                Button("Xoá dữ liệu…") { pending = .wipe(avd) }
-                Button("Xoá AVD…", role: .destructive) { pending = .delete(avd) }
+                Button("Wipe Data…") { pending = .wipe(avd) }
+                Button("Delete AVD…", role: .destructive) { pending = .delete(avd) }
             }
         }
     }
 
     private var pendingTitle: String {
         switch pending {
-        case .wipe(let avd): "Xoá dữ liệu của \(avd.displayName)?"
-        case .delete(let avd): "Xoá \(avd.displayName)?"
+        case .wipe(let avd): "Wipe data for \(avd.displayName)?"
+        case .delete(let avd): "Delete \(avd.displayName)?"
         case nil: ""
         }
     }
 
     private var pendingMessage: String {
         switch pending {
-        case .wipe: "Mọi ứng dụng và dữ liệu người dùng trên AVD này sẽ bị mất. Cần tắt emulator trước."
-        case .delete: "AVD sẽ bị xoá khỏi ổ đĩa và không thể khôi phục."
+        case .wipe: "All apps and user data on this AVD will be lost. Stop the emulator first."
+        case .delete: "The AVD will be deleted from disk and can't be recovered."
         case nil: ""
         }
     }
@@ -144,7 +144,7 @@ struct SidebarView: View {
         let state: String
         switch device.state {
         case .device: state = device.connection == .emulator ? "Emulator" : (device.connection == .network ? "Wi-Fi" : "USB")
-        case .unauthorized: state = "Chưa cấp quyền"
+        case .unauthorized: state = "Unauthorized"
         case .offline: state = "Offline"
         default: state = device.state.rawValue
         }

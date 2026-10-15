@@ -155,15 +155,15 @@ extension AdbClient {
         if let failure = output.range(of: "FAIL:") {
             throw AdbError.adbFailure(String(output[failure.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines))
         }
-        guard let ok = output.range(of: "OK:") else { throw AdbError.adbFailure("bugreportz không trả về đường dẫn: \(output)") }
+        guard let ok = output.range(of: "OK:") else { throw AdbError.adbFailure("bugreportz did not return a path: \(output)") }
         let remote = output[ok.upperBound...].split(whereSeparator: \.isNewline).first.map { String($0).trimmingCharacters(in: .whitespaces) } ?? ""
-        guard !remote.isEmpty else { throw AdbError.adbFailure("bugreportz trả về đường dẫn rỗng.") }
+        guard !remote.isEmpty else { throw AdbError.adbFailure("bugreportz returned an empty path.") }
         let local = try pull(serial: serial, remote: remote, toDirectory: directory)
         _ = try? shell(serial: serial, "rm -f \(SettingChange.shellQuote(remote))")
         return local
     }
 
-    /// Collects the files Device Hub's Diagnostics panel offers: properties, a log snapshot, dumpsys,
+    /// Collects diagnostic files: properties, a log snapshot, dumpsys,
     /// crash/ANR dropbox entries, a screenshot — and optionally a full bugreport.
     @discardableResult
     public func collectDiagnostics(

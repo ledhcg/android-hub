@@ -1,10 +1,14 @@
 #!/bin/bash
 # Builds build/AndroidHub.app (ad-hoc signed) from the SwiftPM package.
 #   scripts/build-app.sh [release|debug]
+# Environment: ANDROIDHUB_BUNDLE_ID overrides the bundle identifier (default io.github.ledhcg.androidhub);
+#              the version comes from the VERSION file.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 CONFIG="${1:-release}"
+VERSION="$(tr -d '[:space:]' < VERSION)"
+BUNDLE_ID="${ANDROIDHUB_BUNDLE_ID:-io.github.ledhcg.androidhub}"
 scripts/fetch-scrcpy-server.sh
 swift build -c "$CONFIG"
 BIN="$(swift build -c "$CONFIG" --show-bin-path)"
@@ -26,12 +30,12 @@ cat > build/AndroidHub.app/Contents/Info.plist <<PLIST
 <dict>
     <key>CFBundleName</key><string>Android Hub</string>
     <key>CFBundleDisplayName</key><string>Android Hub</string>
-    <key>CFBundleIdentifier</key><string>dev.androidhub.app</string>
+    <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
     <key>CFBundleExecutable</key><string>AndroidHub</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>1.0</string>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleShortVersionString</key><string>${VERSION}</string>
+    <key>CFBundleVersion</key><string>${VERSION}</string>
     <key>LSMinimumSystemVersion</key><string>15.0</string>
     <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
     <key>NSHighResolutionCapable</key><true/>

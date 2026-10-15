@@ -12,7 +12,7 @@ private func parseBool(_ text: String) throws -> Bool {
 /// Maps `device settings set <name> <value...>` to a `SettingChange`.
 func parseSettingChange(name: String, values: [String]) throws -> SettingChange {
     func value(_ index: Int = 0) throws -> String {
-        guard index < values.count else { throw CLIError.missingArgument("giá trị cho '\(name)'") }
+        guard index < values.count else { throw CLIError.missingArgument("value for '\(name)'") }
         return values[index]
     }
     func number<T: LosslessStringConvertible>(_ text: String) throws -> T {
@@ -91,12 +91,12 @@ func parseSettingChange(name: String, values: [String]) throws -> SettingChange 
         let tag = try value(1)
         return .appLocale(package: try value(0), languageTag: tag == "reset" ? nil : tag)
     case "open-locale-settings": return .openLocaleSettings
-    default: throw CLIError.invalidValue("tên cài đặt", name)
+    default: throw CLIError.invalidValue("setting name", name)
     }
 }
 
 func registerSettingsCommands() {
-    register("device settings get", "Đọc các cài đặt hiện tại (giao diện, cỡ chữ, xoay, mạng, trợ năng...)") { context in
+    register("device settings get", "Read current settings (appearance, font size, rotation, network, accessibility...)") { context in
         let snapshot = try context.client.settingsSnapshot(serial: try context.serial())
         return CommandOutput(json: snapshot) {
             func row(_ label: String, _ value: (some CustomStringConvertible)?) {
@@ -128,28 +128,28 @@ func registerSettingsCommands() {
     }
 
     register(
-        "device settings set", "<tên> <giá trị>", "Đổi một cài đặt (xem `--help` để biết danh sách tên)",
+        "device settings set", "<name> <value>", "Change a setting (see `--help` for the list of names)",
         detail: """
-            Tên cài đặt và giá trị:
+            Setting names and values:
               appearance light|dark|auto          font-scale 0.85–2.0        animation-scale 0–10
               auto-rotate on|off                  rotation portrait|landscape-left|portrait-upside-down|landscape-right
               wifi|mobile-data|airplane-mode|bluetooth on|off
               brightness 0–255                    auto-brightness on|off     volume N
-              stay-awake|show-touches|pointer-location on|off               screen-timeout <giây>
+              stay-awake|show-touches|pointer-location on|off               screen-timeout <seconds>
               color-inversion|high-contrast-text on|off                     do-not-keep-activities on|off
               color-correction off|monochromacy|protanomaly|deuteranomaly|tritanomaly
               display-size WxH|reset              display-density <dpi>|reset
               battery-level 0–100                 battery-status unknown|charging|discharging|not-charging|full
               battery-power ac,usb,wireless|none  battery-reset
-              timezone <Asia/Ho_Chi_Minh>         location <vĩ độ>,<kinh độ>
-              network-speed|network-delay <profile>   (chỉ emulator)
+              timezone <Asia/Ho_Chi_Minh>         location <latitude>,<longitude>
+              network-speed|network-delay <profile>   (emulator only)
               app-locale <package> <vi-VN|reset>  open-locale-settings
             """
     ) { context in
-        let name = try context.positional(0, "tên cài đặt")
+        let name = try context.positional(0, "setting name")
         let change = try parseSettingChange(name: name, values: Array(context.rest.dropFirst()))
         let serial = try context.serial()
         try context.client.apply(change, serial: serial)
-        return CommandOutput(json: ["applied": name]) { print("Đã áp dụng: \(name)") }
+        return CommandOutput(json: ["applied": name]) { print("Applied: \(name)") }
     }
 }

@@ -194,7 +194,7 @@ extension AdbClient {
     public func appDetails(serial: String, package: String) throws -> AppDetails {
         let dump = try shell(serial: serial, "dumpsys package \(SettingChange.shellQuote(package))").stdout
         guard let details = AppParsing.parseDetails(package: package, dumpsys: dump) else {
-            throw AdbError.adbFailure("Không tìm thấy gói '\(package)' trên thiết bị.")
+            throw AdbError.adbFailure("Package '\(package)' not found on the device.")
         }
         return details
     }
@@ -242,7 +242,7 @@ extension AdbClient {
         serial: String, apks: [URL], options: InstallOptions = InstallOptions(),
         progress: (@Sendable (InstallStage) -> Void)? = nil
     ) throws {
-        guard !apks.isEmpty else { throw AdbError.adbFailure("Không có file APK nào để cài.") }
+        guard !apks.isEmpty else { throw AdbError.adbFailure("No APK files to install.") }
         let session = try syncSession(serial: serial)
         let token = UUID().uuidString.prefix(8)
         var remotes: [(local: URL, remote: String, size: UInt64)] = []
@@ -268,7 +268,7 @@ extension AdbClient {
         } else {
             let created = try run(serial: serial, "pm install-create \(options.flags)")
             guard let range = created.range(of: #"\[(\d+)\]"#, options: .regularExpression) else {
-                throw AdbError.adbFailure("Không tạo được phiên cài đặt: \(created)")
+                throw AdbError.adbFailure("Could not create an install session: \(created)")
             }
             let sessionId = created[range].dropFirst().dropLast()
             for (index, item) in remotes.enumerated() {
@@ -288,7 +288,7 @@ extension AdbClient {
         let paths = try run(serial: serial, "pm path \(SettingChange.shellQuote(package))")
             .split(whereSeparator: \.isNewline)
             .compactMap { $0.hasPrefix("package:") ? String($0.dropFirst("package:".count)) : nil }
-        guard !paths.isEmpty else { throw AdbError.adbFailure("Không tìm thấy APK của '\(package)'.") }
+        guard !paths.isEmpty else { throw AdbError.adbFailure("No APK found for '\(package)'.") }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
         let session = try syncSession(serial: serial)

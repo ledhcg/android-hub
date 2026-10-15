@@ -21,7 +21,7 @@ struct AndroidHubApp: App {
         .defaultSize(width: 1180, height: 760)
         .commands { DeviceCommands(store: store) }
 
-        WindowGroup("Thiết bị", for: String.self) { $serial in
+        WindowGroup("Device", for: String.self) { $serial in
             if let serial { CompactDeviceWindow(serial: serial).environmentObject(store).frame(minWidth: 220, minHeight: 360) }
         }
         .defaultSize(width: 300, height: 640)
@@ -38,7 +38,7 @@ extension FocusedValues {
     }
 }
 
-/// Menu commands that act on the device of the FRONT window (Controls / Device menus, like Device Hub).
+/// Menu commands that act on the device of the FRONT window (Controls / Device menus).
 struct DeviceCommands: Commands {
     @ObservedObject var store: DeviceStore
     @FocusedValue(\.activeSerial) private var activeSerial: String?
@@ -51,53 +51,53 @@ struct DeviceCommands: Commands {
         guard let device else { return }
         let (client, serial) = (store.client, device.serial)
         Task {
-            do { try await offMain { try client.apply(change, serial: serial) } } catch { store.report(error, title: "Không đổi được cài đặt") }
+            do { try await offMain { try client.apply(change, serial: serial) } } catch { store.report(error, title: "Couldn't Change Setting") }
         }
     }
 
     var body: some Commands {
-        CommandMenu("Điều khiển") {
-            Button("Xem màn hình") { controller?.start() }.keyboardShortcut("r", modifiers: [.command]).disabled(controller?.isRunning ?? true)
-            Button("Dừng xem màn hình") { controller?.stop() }.disabled(!(controller?.isRunning ?? false))
+        CommandMenu("Controls") {
+            Button("View Screen") { controller?.start() }.keyboardShortcut("r", modifiers: [.command]).disabled(controller?.isRunning ?? true)
+            Button("Stop Viewing Screen") { controller?.stop() }.disabled(!(controller?.isRunning ?? false))
             Divider()
             Button("Home") { controller?.press(.home) }.keyboardShortcut("h", modifiers: [.command, .shift])
             Button("Back") { controller?.press(.back) }.keyboardShortcut("[", modifiers: [.command])
             Button("Recents") { controller?.press(.recents) }.keyboardShortcut("]", modifiers: [.command])
-            Button("Khoá / Nguồn") { controller?.press(.power) }.keyboardShortcut("l", modifiers: [.command])
+            Button("Lock / Power") { controller?.press(.power) }.keyboardShortcut("l", modifiers: [.command])
             Divider()
-            Button("Xoay thiết bị") { controller?.rotateDevice() }.keyboardShortcut(.rightArrow, modifiers: [.command])
-            Button("Thông báo") { controller?.press(.notifications) }
-            Button("Cài đặt nhanh") { controller?.press(.quickSettings) }
+            Button("Rotate Device") { controller?.rotateDevice() }.keyboardShortcut(.rightArrow, modifiers: [.command])
+            Button("Notifications") { controller?.press(.notifications) }
+            Button("Quick Settings") { controller?.press(.quickSettings) }
             Divider()
-            Button("Tăng âm lượng") { controller?.press(.volumeUp) }.keyboardShortcut(.upArrow, modifiers: [.command, .shift])
-            Button("Giảm âm lượng") { controller?.press(.volumeDown) }.keyboardShortcut(.downArrow, modifiers: [.command, .shift])
+            Button("Volume Up") { controller?.press(.volumeUp) }.keyboardShortcut(.upArrow, modifiers: [.command, .shift])
+            Button("Volume Down") { controller?.press(.volumeDown) }.keyboardShortcut(.downArrow, modifiers: [.command, .shift])
             Divider()
-            Button("Chụp màn hình") { controller?.screenshot(deviceName: name) }.keyboardShortcut("s", modifiers: [.command])
-            Button((controller?.isRecording ?? false) ? "Dừng quay màn hình" : "Quay màn hình") {
+            Button("Take Screenshot") { controller?.screenshot(deviceName: name) }.keyboardShortcut("s", modifiers: [.command])
+            Button((controller?.isRecording ?? false) ? "Stop Recording" : "Record Screen") {
                 if controller?.isRecording ?? false { controller?.stopRecording() } else { controller?.startRecording(deviceName: name) }
             }.keyboardShortcut("r", modifiers: [.command, .shift])
         }
-        CommandMenu("Thiết bị") {
-            Menu("Giao diện") {
-                Button("Sáng") { apply(.appearance(.light)) }
-                Button("Tối") { apply(.appearance(.dark)) }
-                Button("Tự động") { apply(.appearance(.auto)) }
+        CommandMenu("Device") {
+            Menu("Appearance") {
+                Button("Light") { apply(.appearance(.light)) }
+                Button("Dark") { apply(.appearance(.dark)) }
+                Button("Automatic") { apply(.appearance(.auto)) }
             }
-            Menu("Hướng") {
-                Button("Dọc") { apply(.rotation(.portrait)) }
-                Button("Ngang trái") { apply(.rotation(.landscapeLeft)) }
-                Button("Dọc ngược") { apply(.rotation(.portraitUpsideDown)) }
-                Button("Ngang phải") { apply(.rotation(.landscapeRight)) }
+            Menu("Orientation") {
+                Button("Portrait") { apply(.rotation(.portrait)) }
+                Button("Landscape Left") { apply(.rotation(.landscapeLeft)) }
+                Button("Portrait Upside Down") { apply(.rotation(.portraitUpsideDown)) }
+                Button("Landscape Right") { apply(.rotation(.landscapeRight)) }
                 Divider()
-                Button("Tự xoay") { apply(.autoRotate(true)) }
+                Button("Auto-Rotate") { apply(.autoRotate(true)) }
             }
             Menu("Animation") {
-                Button("Làm chậm (10×)") { apply(.animationScale(10)) }
-                Button("Bình thường (1×)") { apply(.animationScale(1)) }
+                Button("Slow Animations (10×)") { apply(.animationScale(10)) }
+                Button("Normal Animations (1×)") { apply(.animationScale(1)) }
             }
             Divider()
-            Button("Hiện điểm chạm") { apply(.showTouches(true)) }
-            Button("Ẩn điểm chạm") { apply(.showTouches(false)) }
+            Button("Show Touches") { apply(.showTouches(true)) }
+            Button("Hide Touches") { apply(.showTouches(false)) }
         }
     }
 }

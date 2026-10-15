@@ -23,7 +23,7 @@ public final class AdbSocket: @unchecked Sendable {
         address.sin_port = port.bigEndian
         guard inet_pton(AF_INET, host, &address.sin_addr) == 1 else {
             Darwin.close(descriptor)
-            throw AdbError.io("địa chỉ không hợp lệ: \(host)")
+            throw AdbError.io("invalid address: \(host)")
         }
 
         let result = withUnsafePointer(to: &address) { pointer in
@@ -112,7 +112,7 @@ public final class AdbSocket: @unchecked Sendable {
     public func readHexLength() throws -> Int {
         let digits = String(decoding: try readExactly(4), as: UTF8.self)
         guard let length = Int(digits, radix: 16) else {
-            throw AdbError.protocolViolation("độ dài không phải hex: '\(digits)'")
+            throw AdbError.protocolViolation("length is not hex: '\(digits)'")
         }
         return length
     }

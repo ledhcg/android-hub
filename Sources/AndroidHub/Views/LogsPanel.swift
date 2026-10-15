@@ -13,18 +13,18 @@ struct LogsPanel: View {
         VStack(spacing: 0) {
             ErrorBanner(message: model.error)
             HStack {
-                TextField("Tìm trong log", text: $model.filter.text).textFieldStyle(.roundedBorder)
-                Picker("Mức", selection: $model.filter.minimumLevel) {
+                TextField("Search log", text: $model.filter.text).textFieldStyle(.roundedBorder)
+                Picker("Level", selection: $model.filter.minimumLevel) {
                     ForEach(LogLevel.allCases.filter { $0 != .silent }, id: \.self) { Text(String($0.rawValue)).tag($0) }
-                }.frame(width: 70).help("Mức log tối thiểu")
+                }.frame(width: 70).help("Minimum log level")
             }
             .padding(8)
             HStack(spacing: 8) {
                 TextField("Tag", text: $model.filter.tag).textFieldStyle(.roundedBorder).frame(maxWidth: 110)
-                Button { model.togglePause() } label: { Image(systemName: model.isPaused ? "play.fill" : "pause.fill") }.help(model.isPaused ? "Tiếp tục" : "Tạm dừng")
-                Button { model.clear() } label: { Image(systemName: "trash") }.help("Xoá log")
-                Button { save() } label: { Image(systemName: "square.and.arrow.down") }.help("Lưu log đang hiển thị")
-                Toggle("Tự cuộn", isOn: $autoScroll).toggleStyle(.checkbox)
+                Button { model.togglePause() } label: { Image(systemName: model.isPaused ? "play.fill" : "pause.fill") }.help(model.isPaused ? "Resume" : "Pause")
+                Button { model.clear() } label: { Image(systemName: "trash") }.help("Clear Log")
+                Button { save() } label: { Image(systemName: "square.and.arrow.down") }.help("Save displayed log")
+                Toggle("Auto-Scroll", isOn: $autoScroll).toggleStyle(.checkbox)
                 Spacer()
                 Text("\(model.visible.count)").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
             }
@@ -78,18 +78,18 @@ struct DiagnosticsPanel: View {
             VStack(alignment: .leading, spacing: 14) {
                 ErrorBanner(message: model.error)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Tải file chẩn đoán").font(.headline)
-                    Text("getprop, logcat, dumpsys, crash/ANR gần đây và ảnh chụp màn hình.").font(.caption).foregroundStyle(.secondary)
-                    Toggle("Kèm bugreport đầy đủ (mất vài phút)", isOn: $includeBugReport)
-                    Button("Thu thập…") { choose { model.collect(to: $0, includeBugReport: includeBugReport) } }.disabled(model.progress != nil)
+                    Text("Collect Diagnostic Files").font(.headline)
+                    Text("getprop, logcat, dumpsys, recent crashes/ANRs, and a screenshot.").font(.caption).foregroundStyle(.secondary)
+                    Toggle("Include full bugreport (takes a few minutes)", isOn: $includeBugReport)
+                    Button("Collect…") { choose { model.collect(to: $0, includeBugReport: includeBugReport) } }.disabled(model.progress != nil)
                     if let progress = model.progress { ProgressView(progress) }
                     if let message = model.message { Text(message).font(.caption).foregroundStyle(.green) }
                 }
                 Divider()
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Crash & ANR gần đây").font(.headline)
+                    Text("Recent Crashes & ANRs").font(.headline)
                     HStack {
-                        Picker("Loại", selection: $model.dropBoxTag) {
+                        Picker("Type", selection: $model.dropBoxTag) {
                             Text("App crash").tag(DropBoxTag.appCrash)
                             Text("App ANR").tag(DropBoxTag.appANR)
                             Text("Native crash").tag(DropBoxTag.appNativeCrash)
@@ -97,21 +97,21 @@ struct DiagnosticsPanel: View {
                             Text("System server crash").tag(DropBoxTag.systemServerCrash)
                             Text("StrictMode").tag(DropBoxTag.strictMode)
                         }.labelsHidden()
-                        Button("Tải") { model.loadDropBox() }
+                        Button("Load") { model.loadDropBox() }
                     }
-                    textBox(model.dropBoxText, placeholder: "Bấm Tải để xem.")
+                    textBox(model.dropBoxText, placeholder: "Click Load to view.")
                 }
                 Divider()
                 VStack(alignment: .leading, spacing: 6) {
                     Text("dumpsys").font(.headline)
                     HStack {
                         Picker("Service", selection: $model.selectedService) {
-                            Text("(tất cả)").tag("")
+                            Text("(all)").tag("")
                             ForEach(model.services, id: \.self) { Text($0).tag($0) }
                         }.labelsHidden()
-                        Button("Chạy") { model.dump(model.selectedService) }
+                        Button("Run") { model.dump(model.selectedService) }
                     }
-                    textBox(model.dumpText, placeholder: "Chọn service rồi bấm Chạy.")
+                    textBox(model.dumpText, placeholder: "Choose a service, then click Run.")
                 }
             }
             .padding(12)
@@ -132,7 +132,7 @@ struct DiagnosticsPanel: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
-        panel.prompt = "Lưu vào đây"
+        panel.prompt = "Save Here"
         if panel.runModal() == .OK, let url = panel.url { completion(url) }
     }
 }
