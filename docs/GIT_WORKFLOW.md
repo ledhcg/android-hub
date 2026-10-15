@@ -20,7 +20,7 @@ brew install gitleaks             # optional but recommended: the pre-commit hoo
 <footers: BREAKING CHANGE: …, Fixes #123, Co-authored-by: …>
 ```
 
-**Subject rules** (checked by `scripts/check-commit-message.sh`): ≤ 72 characters, starts lowercase, imperative mood ("add", "fix",
+**Subject rules** (checked by `scripts/check-commit-message.sh`): ≤ 72 characters (not counting the ` (#123)` that GitHub adds on squash merge), starts lowercase, imperative mood ("add", "fix",
 "remove", not "added"/"adds"), no trailing period, `scope` optional, blank line before the body.
 
 ### Types

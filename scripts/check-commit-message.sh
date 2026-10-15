@@ -36,6 +36,9 @@ esac
 
 [[ -n "$SUBJECT" ]] || fail "empty subject"
 
+# GitHub appends " (#123)" to squash-merge subjects; it is not part of what the author wrote, so judge the rest.
+SUBJECT="$(printf '%s' "$SUBJECT" | sed -E 's/ \(#[0-9]+\)$//')"
+
 # The first release commit is the only free-form one.
 [[ "$SUBJECT" == "Initial commit" ]] && exit 0
 
