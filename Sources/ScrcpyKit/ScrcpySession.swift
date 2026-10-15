@@ -5,6 +5,8 @@ import Foundation
 /// the jar in `Resources/` and this version string must change together.
 public enum ScrcpyServer {
     public static let version = "3.3.4"
+    /// Upper bound for one video packet announced by the device (a 4K key frame is a few MiB).
+    public static let maxVideoPacketSize = 32 * 1024 * 1024
     public static let remotePath = "/data/local/tmp/scrcpy-server-\(version).jar"
     static let resourceName = "scrcpy-server-\(version).jar"
 
@@ -39,6 +41,8 @@ public enum ScrcpyError: Error, CustomStringConvertible {
     case connectTimeout(String)
     case unsupportedCodec(UInt32)
     case disconnected
+    /// A packet header announced more data than any real frame needs; the stream is corrupt or hostile.
+    case packetTooLarge(Int)
 
     public var description: String {
         switch self {
@@ -47,6 +51,7 @@ public enum ScrcpyError: Error, CustomStringConvertible {
         case .connectTimeout(let log): "Timed out waiting for scrcpy-server to start.\n\(log)"
         case .unsupportedCodec(let id): String(format: "Unsupported video codec: 0x%08x", id)
         case .disconnected: "Lost connection to the device."
+        case .packetTooLarge(let size): "The device sent an invalid video packet (\(size) bytes); the connection was closed."
         }
     }
 }
@@ -286,9 +291,13 @@ public final class ScrcpySession: @unchecked Sendable {
                     var word: UInt64 = 0
                     for byte in header[0..<8] { word = word << 8 | UInt64(byte) }
                     let size = Int(header[8]) << 24 | Int(header[9]) << 16 | Int(header[10]) << 8 | Int(header[11])
+                    // The size comes from the device: never allocate on its say-so beyond a sane bound.
+                    guard size <= ScrcpyServer.maxVideoPacketSize else { throw ScrcpyError.packetTooLarge(size) }
                     let payload = size > 0 ? try videoSocket.readExactly(size) : []
                     handlers.onPacket(VideoPacket(header: word, data: Data(payload)))
                 }
+            } catch let error as ScrcpyError {
+                finish(stoppedByUser() ? nil : error)
             } catch {
                 finish(stoppedByUser() ? nil : (exited.isSet ? ScrcpyError.serverExited(serverLog.text) : ScrcpyError.disconnected))
             }

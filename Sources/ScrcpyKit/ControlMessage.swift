@@ -176,7 +176,10 @@ public struct DeviceMessageParser: Sendable {
 
     public init() {}
 
-    public enum ParseError: Error { case unknownType(UInt8) }
+    public enum ParseError: Error { case unknownType(UInt8), messageTooLarge(Int) }
+
+    /// scrcpy limits clipboard text to 256 KiB; anything far beyond that is not a real message.
+    public static let maxClipboardLength = 1 << 20
 
     public mutating func feed(_ bytes: [UInt8]) throws -> [DeviceMessage] {
         buffer += bytes
@@ -198,6 +201,7 @@ public struct DeviceMessageParser: Sendable {
         case 0:
             guard bytes.count >= 5 else { return nil }
             let length = be32(bytes, 1)
+            guard length <= maxClipboardLength else { throw ParseError.messageTooLarge(length) }
             guard bytes.count >= 5 + length else { return nil }
             return (.clipboard(String(decoding: bytes[5..<5 + length], as: UTF8.self)), 5 + length)
         case 1:
