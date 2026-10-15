@@ -96,6 +96,22 @@ struct DeviceMessageTests {
         var parser = DeviceMessageParser()
         #expect(throws: DeviceMessageParser.ParseError.self) { try parser.feed([99]) }
     }
+
+    @Test("a clipboard message announcing an absurd length is rejected instead of buffered")
+    func oversizedClipboardIsRejected() {
+        var parser = DeviceMessageParser()
+        // type 0, length 0xFFFFFFFF
+        #expect(throws: DeviceMessageParser.ParseError.self) { try parser.feed([0, 0xFF, 0xFF, 0xFF, 0xFF]) }
+    }
+
+    @Test("a clipboard message at the limit is still accepted")
+    func clipboardAtLimitIsAccepted() throws {
+        var parser = DeviceMessageParser()
+        let limit = DeviceMessageParser.maxClipboardLength
+        let header: [UInt8] = [0, UInt8(limit >> 24 & 0xFF), UInt8(limit >> 16 & 0xFF), UInt8(limit >> 8 & 0xFF), UInt8(limit & 0xFF)]
+        let messages = try parser.feed(header + [UInt8](repeating: 0x61, count: limit))
+        #expect(messages.count == 1)
+    }
 }
 
 @Suite("video framing")

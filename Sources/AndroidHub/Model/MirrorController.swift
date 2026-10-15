@@ -140,6 +140,8 @@ final class MirrorController: ObservableObject {
 
     private func handle(deviceMessage: DeviceMessage) {
         if case .clipboard(let text) = deviceMessage {
+            guard let requested = clipboardRequestedAt, Date().timeIntervalSince(requested) < 5 else { return }
+            clipboardRequestedAt = nil
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(text, forType: .string)
             showToast("Copied clipboard from device")
@@ -148,7 +150,14 @@ final class MirrorController: ObservableObject {
 
     // MARK: Input
 
-    func send(_ message: ControlMessage) { session?.send(message) }
+    /// When the user last asked for the device clipboard (Cmd+C / Cmd+X). A clipboard message that arrives without a recent
+    /// request is ignored: the device must not be able to overwrite the Mac clipboard on its own.
+    private var clipboardRequestedAt: Date?
+
+    func send(_ message: ControlMessage) {
+        if case .getClipboard = message { clipboardRequestedAt = Date() }
+        session?.send(message)
+    }
 
     /// Presses a bezel/navigation button through the control socket (instant, no adb round trip).
     func press(_ button: DeviceButton) {
