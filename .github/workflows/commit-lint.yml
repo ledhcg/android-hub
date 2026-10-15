@@ -1,0 +1,24 @@
+name: Commit lint
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pull request title
+        if: github.event_name == 'pull_request'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: scripts/check-commit-message.sh -s "$TITLE"
+      - name: Check head commit subject
+        if: github.event_name == 'push'
+        run: scripts/check-commit-message.sh -s "$(git log -1 --format=%s)"

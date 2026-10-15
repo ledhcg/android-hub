@@ -1,0 +1,12 @@
+.build/
+.swiftpm/
+*.xcodeproj
+.DS_Store
+build/
+
+# Fetched by scripts/fetch-scrcpy-server.sh (see THIRD_PARTY_NOTICES.md)
+Sources/ScrcpyKit/Resources/*.jar
+
+# Claude Code local-only files
+.claude/settings.local.json
+CLAUDE.local.md

@@ -1,0 +1,30 @@
+#!/bin/bash
+# Blocks commits that should never happen in this repo (docs/GIT_WORKFLOW.md#what-never-gets-committed).
+set -uo pipefail
+cd "$(git rev-parse --show-toplevel)"
+status=0
+deny() { echo "pre-commit: $1" >&2; status=1; }
+
+while IFS= read -r -d '' file; do
+    case "$file" in
+        *.jar) deny "$file — binaries such as the scrcpy jar are fetched by scripts/fetch-scrcpy-server.sh, never committed" ;;
+        *.mp4 | *.mov | *.apk | *.aab | *.dmg | *.zip | *.ipa) deny "$file — media and build artifacts do not belong in git" ;;
+        .env | .env.* | *.pem | *.p12 | *.key | *.mobileprovision) deny "$file — looks like a credential or signing file" ;;
+        .claude/settings.local.json | CLAUDE.local.md) deny "$file — machine-local file" ;;
+        *.png | *.jpg | *.jpeg | *.gif | *.heic)
+            case "$file" in
+                scripts/assets/* | docs/assets/*) ;;
+                *) deny "$file — images are allowed only in scripts/assets/ or docs/assets/ (screenshots may show private device content)" ;;
+            esac ;;
+    esac
+    if [[ -f "$file" ]] && (( $(wc -c < "$file") > 1048576 )) && [[ "$file" != *.png ]]; then
+        deny "$file — larger than 1 MB"
+    fi
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+
+if command -v gitleaks >/dev/null 2>&1; then
+    gitleaks git --staged --redact --no-banner >/dev/null 2>&1 || { deny "gitleaks found a possible secret in the staged changes (run: gitleaks git --staged -v)"; }
+else
+    echo "pre-commit: gitleaks not installed — skipping secret scan (brew install gitleaks)" >&2
+fi
+exit $status

@@ -1,0 +1,9 @@
+# <type>(<scope>): <imperative summary, lowercase, <= 72 chars, no period>
+#
+# Why this change? What was wrong or missing? (wrap at 72)
+#
+# Breaking change: add "!" after the type/scope and a "BREAKING CHANGE: ..." footer.
+# Issues: "Fixes #123" / "Refs #123".
+#
+# types:  feat fix docs style refactor perf test build ci chore revert
+# scopes: adbkit scrcpykit emulatorkit adbctl app design scripts docs ci deps release repo
